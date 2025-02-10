@@ -3,6 +3,7 @@
 mario.txt
 coin.txt
 cloud.txt
+koopa.txt
 brick.txt
 #
 [OBJECTS]
