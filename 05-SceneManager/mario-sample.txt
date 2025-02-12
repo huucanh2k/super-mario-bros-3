@@ -22,3 +22,5 @@ height	240
 60	textures\enemies_4.png
 100	textures\mario2.png
 120	textures\enemies_2.png
+
+

@@ -8,6 +8,10 @@ map.txt
 brick-question.txt
 pipeline.txt
 plant.txt
+koopa.txt
+para_goomba.txt
+
+map.txt
 #
 [MAP]
 60	1408	216
@@ -46,6 +50,16 @@ plant.txt
 6	2157	393	25	50	2	52000	52000	52000
 6	2187	343	25	148	2	52000	52000	52000
 
+0	50	10
+
+#KOOPA
+3	600	200
+
+#RED KOOPA
+7	500	200
+
+#RED PARA GOOMBA
+10	500	200	
 
 #COIN
 4	100	120
@@ -90,5 +104,5 @@ plant.txt
 
 
 #Portal 
-50	200	160	216	180	1
+#50	200	160	216	180	1
 

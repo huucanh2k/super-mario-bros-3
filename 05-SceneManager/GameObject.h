@@ -42,6 +42,26 @@ public:
 	virtual void Delete() { isDeleted = true; }
 	bool IsDeleted() { return isDeleted; }
 
+	float GetX() {
+		return x;
+	}
+
+	float GetY() {
+		return y;
+	}
+
+	float GetVx() {
+		return vx;
+	}
+
+	float GetVy() {
+		return vy;
+	}
+
+	int GetNx() {
+		return nx;
+	}
+
 	void RenderBoundingBox();
 
 	CGameObject();

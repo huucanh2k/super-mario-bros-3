@@ -151,12 +151,14 @@
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="Brick.cpp" />
     <ClCompile Include="BrickQuestion.cpp" />
+    <ClCompile Include="CheckFall.cpp" />
     <ClCompile Include="Coin.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Goomba.cpp" />
+    <ClCompile Include="Koopa.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Mario.cpp" />
@@ -165,6 +167,8 @@
     <ClCompile Include="Platform.cpp" />
     <ClCompile Include="PlayScene.cpp" />
     <ClCompile Include="Portal.cpp" />
+    <ClCompile Include="RedKoopa.cpp" />
+    <ClCompile Include="RedParaGoomba.cpp" />
     <ClCompile Include="SampleKeyEventHandler.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Sprites.cpp" />
@@ -179,6 +183,7 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="Brick.h" />
     <ClInclude Include="BrickQuestion.h" />
+    <ClInclude Include="CheckFall.h" />
     <ClInclude Include="Coin.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="debug.h" />
@@ -193,6 +198,8 @@
     <ClInclude Include="Platform.h" />
     <ClInclude Include="PlayScene.h" />
     <ClInclude Include="Portal.h" />
+    <ClInclude Include="RedKoopa.h" />
+    <ClInclude Include="RedParaGoomba.h" />
     <ClInclude Include="SampleKeyEventHandler.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sprite.h" />

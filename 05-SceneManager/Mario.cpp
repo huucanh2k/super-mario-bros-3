@@ -5,6 +5,9 @@
 #include "Game.h"
 
 #include "Goomba.h"
+#include "Koopa.h"
+#include "RedKoopa.h"
+#include "RedParaGoomba.h"
 #include "Coin.h"
 #include "Portal.h"
 #include "BrickQuestion.h"
@@ -19,6 +22,12 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 
 	if (abs(vx) > abs(maxVx)) vx = maxVx;
 
+	if (isKicking && GetTickCount64() - kick_start > MARIO_KICKING_TIME) {
+		state = MARIO_STATE_IDLE;
+		isKicking = false;
+		DebugOut(L">>> Check kicking");
+	}
+
 	// reset untouchable timer if untouchable time has passed
 	if ( GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME) 
 	{
@@ -27,6 +36,25 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 	}
 
 	CCollision::GetInstance()->Process(this, dt, coObjects);
+}
+
+float CMario::GetX()
+{
+	return x;
+}
+
+float CMario::GetY()
+{
+	return y;
+}
+
+int CMario::GetDirection() {
+	if (state == MARIO_STATE_WALKING_RIGHT)
+		return 1;
+	else if (state == MARIO_STATE_WALKING_LEFT)
+		return -1;
+	else
+		return 0;
 }
 
 void CMario::OnNoCollision(DWORD dt)
@@ -51,6 +79,12 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 
 	if (dynamic_cast<CGoomba*>(e->obj))
 		OnCollisionWithGoomba(e);
+	else if (dynamic_cast<CRedParaGoomba*>(e->obj))
+		OnCollisionWithRedParaGoomba(e);
+	if (dynamic_cast<CKoopa*>(e->obj))
+		OnCollisionWithKoopa(e);
+	else if (dynamic_cast<CRedKoopa*>(e->obj))
+		OnCollisionWithRedKoopa(e);
 	else if (dynamic_cast<CCoin*>(e->obj))
 		OnCollisionWithCoin(e);
 	else if (dynamic_cast<CPortal*>(e->obj))
@@ -117,6 +151,169 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 	}
 }
 
+void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
+{
+	CRedParaGoomba* redParaGoomba = dynamic_cast<CRedParaGoomba*>(e->obj);
+	// jump on top >> kill Goomba and deflect a bit 
+	if (e->ny < 0)
+	{
+		if (redParaGoomba->GetState() != RED_PARA_GOOMBA_STATE_DIE)
+		{
+			if (redParaGoomba->GetIsWinged()) {
+				redParaGoomba->SetIsWinged(false);
+			}
+			else {
+				redParaGoomba->SetState(RED_PARA_GOOMBA_STATE_DIE);
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+	}
+	else 
+	{
+		if (untouchable == 0)
+		{
+			if (redParaGoomba->GetState() != RED_PARA_GOOMBA_STATE_DIE)
+			{
+				if (level > MARIO_LEVEL_SMALL)
+				{
+					level = MARIO_LEVEL_SMALL;
+					StartUntouchable();
+				}
+				else
+				{
+					DebugOut(L">>> Mario DIE >>> \n");
+					SetState(MARIO_STATE_DIE);
+				}
+			}
+		}
+	}
+}
+
+void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
+{
+	CKoopa* koopa = dynamic_cast<CKoopa*>(e->obj);
+	// jump on top >> turn koopa into shell state 
+	if (e->ny < 0)
+	{
+		if (koopa->GetState() == KOOPA_STATE_SHELL) {
+			if (e->nx < 0) {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
+			else {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			return;
+		}
+
+		if (koopa->GetState() != KOOPA_STATE_DIE && koopa->GetState() != KOOPA_STATE_SHELL)
+		{
+			koopa->SetState(KOOPA_STATE_SHELL);
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+		
+	}
+	else if (e->ny > 0)
+	{
+		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+		{
+			if (e->ny > 0)
+			{
+				if (level > MARIO_LEVEL_SMALL)
+				{
+					level = MARIO_LEVEL_SMALL;
+					StartUntouchable();
+				}
+				else
+				{
+					DebugOut(L">>> Mario DIE >>> \n");
+					SetState(MARIO_STATE_DIE);
+				}
+			}
+		}
+	}
+	else if (e->nx != 0 && koopa->GetState() == KOOPA_STATE_SHELL) //Mario hit koopa shell
+	{
+
+		if (e->nx < 0) {
+			koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+		}
+		else {
+			koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+		}
+	}
+	else // hit by Koopa
+	{
+		if (untouchable == 0)
+		{
+			if (koopa->GetState() == KOOPA_STATE_DIE || koopa->GetState() == KOOPA_STATE_SHELL || koopa->GetState() == KOOPA_STATE_SHELL_HOLD)
+				return;
+			
+			if (level > MARIO_LEVEL_SMALL)
+			{
+				level = MARIO_LEVEL_SMALL;
+				StartUntouchable();
+			}
+			else
+			{
+				DebugOut(L">>> Mario DIE >>> \n");
+				SetState(MARIO_STATE_DIE);
+			}
+		}
+	}
+}
+
+void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
+	CRedKoopa* redKoopa = dynamic_cast<CRedKoopa*>(e->obj);
+
+	// Mario hit on the koopa's head
+	if (e->ny < 0)
+	{
+		if (redKoopa->GetState() == KOOPA_STATE_WALKING_LEFT || redKoopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+		{	
+			redKoopa->SetState(KOOPA_STATE_SHELL);
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+		else if (redKoopa->GetState() == KOOPA_STATE_SHELL) {
+			if (e->nx < 0) {
+				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
+			else {
+				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+		else if (redKoopa->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT || redKoopa->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT)
+		{
+			redKoopa->SetState(KOOPA_STATE_SHELL);
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+	}
+	else if (e->ny > 0)
+	{
+		
+	}
+	else {
+		if (untouchable == 0)
+		{
+			if (redKoopa->GetState() == KOOPA_STATE_DIE || redKoopa->GetState() == KOOPA_STATE_SHELL || redKoopa->GetState() == KOOPA_STATE_SHELL_HOLD)
+				return;
+
+			if (level > MARIO_LEVEL_SMALL)
+			{
+				level = MARIO_LEVEL_SMALL;
+				StartUntouchable();
+			}
+			else
+			{
+				DebugOut(L">>> Mario DIE >>> \n");
+				SetState(MARIO_STATE_DIE);
+			}
+		}
+	}
+	
+}
+
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {
 	e->obj->Delete();
@@ -159,6 +356,23 @@ int CMario::GetAniIdSmall()
 				aniId = ID_ANI_MARIO_SIT_RIGHT;
 			else
 				aniId = ID_ANI_MARIO_SIT_LEFT;
+		} 
+		else if (isKicking) {
+			if (nx > 0)
+				aniId = ID_ANI_MARIO_SMALL_KICK_RIGHT;
+			else
+				aniId = ID_ANI_MARIO_SMALL_KICK_LEFT;
+		}
+		else if (isHoldingShell) {
+			if (vx != 0) {
+				if (nx > 0)
+					aniId = ID_ANI_MARIO_SMALL_HOLDING_WALK_RIGHT;
+				else
+					aniId = ID_ANI_MARIO_SMALL_HOLDING_WALK_LEFT;
+			}
+			else {
+				aniId = ID_ANI_MARIO_SMALL_HOLDING_IDLE_RIGHT;
+			}
 		}
 		else
 			if (vx == 0)
@@ -222,6 +436,23 @@ int CMario::GetAniIdBig()
 			else
 				aniId = ID_ANI_MARIO_SIT_LEFT;
 		}
+		else if (isKicking) {
+			if (nx > 0)
+				aniId = ID_ANI_MARIO_KICK_RIGHT;
+			else
+				aniId = ID_ANI_MARIO_KICK_LEFT;
+		}
+		else if (isHoldingShell) {
+			if (vx != 0) {
+				if (nx > 0)
+					aniId = ID_ANI_MARIO_HOLDING_WALK_RIGHT;
+				else
+					aniId = ID_ANI_MARIO_HOLDING_WALK_LEFT;
+			}
+			else {
+				aniId = ID_ANI_MARIO_HOLDING_IDLE_RIGHT;
+			}
+		}	
 		else
 			if (vx == 0)
 			{
@@ -400,6 +631,40 @@ void CMario::SetState(int state)
 	case MARIO_STATE_IDLE:
 		ax = 0.0f;
 		vx = 0.0f;
+		break;
+
+	case MARIO_STATE_HOLDING_IDLE_LEFT:
+		if (isSitting) break;
+		maxVx = 0;
+		ax = 0;
+		nx = -1;
+		break;
+	
+	case MARIO_STATE_HOLDING_IDLE_RIGHT:
+		if (isSitting) break;
+		maxVx = 0;
+		ax = 0;
+		nx = 1;
+		break;
+
+	case MARIO_STATE_HOLDING_WALK_LEFT:
+		if (isSitting) break;
+		maxVx = -MARIO_WALKING_SPEED;
+		ax = -MARIO_ACCEL_WALK_X;
+		nx = -1;
+		break;	
+
+	case MARIO_STATE_HOLDING_WALK_RIGHT:
+		if (isSitting) break;
+		maxVx = MARIO_WALKING_SPEED;
+		ax = MARIO_ACCEL_WALK_X;
+		nx = 1;
+		break;
+
+	case MARIO_STATE_IS_KICKING:
+		if (isSitting) break;
+		isKicking = true;
+		kick_start = GetTickCount64();
 		break;
 
 	case MARIO_STATE_DIE:
