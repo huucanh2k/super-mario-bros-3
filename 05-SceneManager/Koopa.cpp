@@ -58,8 +58,10 @@ void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 {
 	if (!e->obj->IsBlocking()) return;
 	if (dynamic_cast<CKoopa*>(e->obj)) {
-		e->obj->SetState(KOOPA_STATE_DIE);
-		return;
+		if (e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
+			SetState(KOOPA_STATE_DIE);
+			return;
+		}
 	};
 	if (e->ny != 0)
 	{
@@ -92,7 +94,7 @@ void CKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		isDeleted = true;
 		return;
 	}
-	if ((state == KOOPA_STATE_SHELL) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
+	if ((state == KOOPA_STATE_SHELL || state == KOOPA_STATE_SHELL_HOLD) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
 	{
 		SetState(KOOPA_STATE_WALKING_LEFT);
 		return;
@@ -107,7 +109,7 @@ void CKoopa::Render()
 	int ani = ID_ANI_KOOPA_WALKING_LEFT;
 	if (state == KOOPA_STATE_WALKING_RIGHT)
 		ani = ID_ANI_KOOPA_WALKING_RIGHT;
-	else if (state == KOOPA_STATE_SHELL)
+	else if (state == KOOPA_STATE_SHELL || state == KOOPA_STATE_SHELL_HOLD)
 		ani = ID_ANI_KOOPA_SHELL;
 	else if (state == KOOPA_STATE_DIE)
 		ani = ID_ANI_KOOPA_DIE;
@@ -141,6 +143,8 @@ void CKoopa::SetState(int state)
 	case KOOPA_STATE_SHELL_FAST_MOVING_RIGHT:
 		vx = KOOPA_SHELL_FAST_MOVING_SPEED;
 		vy = 0;
+		break;
+	case KOOPA_STATE_SHELL_HOLD: 
 		break;
 	case KOOPA_STATE_DIE:
 		die_start = GetTickCount64();
