@@ -1,4 +1,5 @@
 #include "Koopa.h"
+#include "Goomba.h"
 
 CKoopa::CKoopa(float x, float y) : CGameObject(x, y)
 {
@@ -32,6 +33,12 @@ void CKoopa::GetBoundingBox(float& left, float& top, float& right, float& bottom
 		right = left + KOOPA_SHELL_BBOX_WIDTH;
 		bottom = top + KOOPA_SHELL_BBOX_HEIGHT;
 	}
+	else if (state == KOOPA_STATE_SHELL_HOLD) {
+		left = x - KOOPA_SHELL_BBOX_WIDTH / 2;
+		top = y - KOOPA_SHELL_BBOX_HEIGHT / 2;
+		right = left + KOOPA_SHELL_BBOX_WIDTH;
+		bottom = top + KOOPA_SHELL_BBOX_HEIGHT;
+	}
 	else
 	{
 		left = x - KOOPA_BBOX_WIDTH / 2;
@@ -50,11 +57,15 @@ void CKoopa::OnNoCollision(DWORD dt)
 void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 {
 	if (!e->obj->IsBlocking()) return;
-	if (dynamic_cast<CKoopa*>(e->obj)) return;
+	if (dynamic_cast<CKoopa*>(e->obj)) {
+		e->obj->SetState(KOOPA_STATE_DIE);
+		return;
+	};
 	if (e->ny != 0)
 	{
 		vy = 0;
 	}
+
 	else if (e->nx != 0)
 	{
 		if (state == KOOPA_STATE_WALKING_LEFT) {
