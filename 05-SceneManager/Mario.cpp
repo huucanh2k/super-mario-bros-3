@@ -103,14 +103,26 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 			koopa->SetState(KOOPA_STATE_SHELL);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
-		
+		else if (koopa->GetState() == KOOPA_STATE_SHELL) {
+			if (e->nx < 0) {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
+			else {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
 	}
-	else if (e->ny > 0)
+	else if (e->ny > 0) 
 	{
-		if (koopa->GetState() == KOOPA_STATE_SHELL)
+		if (koopa->GetState() == KOOPA_STATE_SHELL) //Mario hit the koopa shell
 		{
-			//Implement Koopa shell when hit by Mario
-
+			if (e->nx < 0) {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
+			else {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
 		}
 		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 		{
@@ -129,18 +141,20 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 			}
 		}
 	}
-	else if (e->nx != 0 && koopa->GetState() == KOOPA_STATE_SHELL)
+	else if (e->nx != 0 && koopa->GetState() == KOOPA_STATE_SHELL) //Mario hit koopa shell
 	{
-		if (e->nx > 0)
-			koopa->SetState(KOOPA_STATE_WALKING_LEFT);
-		else
-			koopa->SetState(KOOPA_STATE_WALKING_RIGHT);
+		if (e->nx < 0) {
+			koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+		}
+		else {
+			koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+		}
 	}
 	else // hit by Koopa
 	{
 		if (untouchable == 0)
 		{
-			if (koopa->GetState() != KOOPA_STATE_DIE)
+			if (koopa->GetState() != KOOPA_STATE_DIE && koopa->GetState() != KOOPA_STATE_SHELL && koopa->GetState() != KOOPA_STATE_SHELL_FAST_MOVING_RIGHT && koopa->GetState() != KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
 			{
 				if (level > MARIO_LEVEL_SMALL)
 				{

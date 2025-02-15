@@ -18,6 +18,13 @@ void CKoopa::GetBoundingBox(float& left, float& top, float& right, float& bottom
 		right = left + KOOPA_BBOX_WIDTH;
 		bottom = top + KOOPA_BBOX_HEIGHT_DIE;
 	}
+	else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
+	{
+		left = x - KOOPA_SHELL_BBOX_WIDTH / 2;
+		top = y - KOOPA_SHELL_BBOX_HEIGHT / 2;
+		right = left + KOOPA_SHELL_BBOX_WIDTH;
+		bottom = top + KOOPA_SHELL_BBOX_HEIGHT;
+	}
 	else if (state == KOOPA_STATE_SHELL)
 	{
 		left = x - KOOPA_SHELL_BBOX_WIDTH / 2;
@@ -56,6 +63,12 @@ void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 		else if (state == KOOPA_STATE_WALKING_RIGHT) {
 			SetState(KOOPA_STATE_WALKING_LEFT);
 		}
+		else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT) {
+			SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+		}
+		else if (state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
+			SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+		}
 	}
 }
 
@@ -71,6 +84,7 @@ void CKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	if ((state == KOOPA_STATE_SHELL) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
 	{
 		SetState(KOOPA_STATE_WALKING_LEFT);
+		return;
 	}
 
 	CGameObject::Update(dt, coObjects);
@@ -86,6 +100,8 @@ void CKoopa::Render()
 		ani = ID_ANI_KOOPA_SHELL;
 	else if (state == KOOPA_STATE_DIE)
 		ani = ID_ANI_KOOPA_DIE;
+	else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
+		ani = ID_ANI_KOOPA_SHELL_FAST_MOVING;
 	
 	CAnimations::GetInstance()->Get(ani)->Render(x, y);
 	RenderBoundingBox();
@@ -106,6 +122,14 @@ void CKoopa::SetState(int state)
 		vx = 0;
 		vy = 0;
 		shell_start = GetTickCount64();
+		break;
+	case KOOPA_STATE_SHELL_FAST_MOVING_LEFT:
+		vx = -KOOPA_SHELL_FAST_MOVING_SPEED;
+		vy = 0;
+		break;
+	case KOOPA_STATE_SHELL_FAST_MOVING_RIGHT:
+		vx = KOOPA_SHELL_FAST_MOVING_SPEED;
+		vy = 0;
 		break;
 	case KOOPA_STATE_DIE:
 		die_start = GetTickCount64();
