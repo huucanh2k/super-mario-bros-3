@@ -120,6 +120,122 @@ void CKoopa::Render()
 	RenderBoundingBox();
 }
 
+void CRed_Koopa::CreateCheckfallSmall() {
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+
+
+	if (vx < 0)
+	{
+		CGameObject* add_object_left1 = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA_ON_GLASS_BRICK, GetX() - 1, y + 6, 0, 0);
+		AddCheck(add_object_left1);
+		DebugOut(L">>> check tao obj left >>> \n");
+		checkfall->SetState(SMALL_STATE_LEFT_KOOPA);
+		//checkfall->SETay(0.0009f);
+
+
+	}
+	else if (vx >= 0)
+	{
+		CGameObject* add_object_right1 = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA_ON_GLASS_BRICK, GetX() + 1, y + 6, 0/* KOOPA_RED_WALKING_SPEED*/, 0);
+
+		AddCheck(add_object_right1);
+		DebugOut(L">>> check tao obj right >>> \n");
+		checkfall->SetState(SMALL_STATE_RIGHT_KOOPA);
+		//checkfall->SETay(0.0009f);
+
+	}
+
+
+
+
+}
+
+void CRed_Koopa::CreateCheckfall() {
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+	if (vx < 0)
+	{
+		CGameObject* add_object_left = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA, GetX() - KOOPA_RED_BBOX_WIDTH, y + 1, 0, 0);
+		AddCheck(add_object_left);
+		DebugOut(L">>> check tao obj left >>> \n");
+		checkfall->SetState(STATE_LEFT_KOOPA);
+		checkfall->SETay(0.00009f);
+
+
+	}
+	else
+	{
+		CGameObject* add_object_right = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA, GetX() + KOOPA_RED_BBOX_WIDTH, y + 1, 0/* KOOPA_RED_WALKING_SPEED*/, 0);
+
+		AddCheck(add_object_right);
+		DebugOut(L">>> check tao obj right >>> \n");
+		checkfall->SetState(STATE_RIGHT_KOOPA);
+		checkfall->SETay(0.00009f);
+
+	}
+
+}
+void CRed_Koopa::CreateCheckfallSmall() {
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+
+
+	if (vx < 0)
+	{
+		CGameObject* add_object_left1 = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA_ON_GLASS_BRICK, GetX() - 1, y + 6, 0, 0);
+		AddCheck(add_object_left1);
+		DebugOut(L">>> check tao obj left >>> \n");
+		checkfall->SetState(SMALL_STATE_LEFT_KOOPA);
+		//checkfall->SETay(0.0009f);
+
+
+	}
+	else if (vx >= 0)
+	{
+		CGameObject* add_object_right1 = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA_ON_GLASS_BRICK, GetX() + 1, y + 6, 0/* KOOPA_RED_WALKING_SPEED*/, 0);
+
+		AddCheck(add_object_right1);
+		DebugOut(L">>> check tao obj right >>> \n");
+		checkfall->SetState(SMALL_STATE_RIGHT_KOOPA);
+		//checkfall->SETay(0.0009f);
+
+	}
+}
+
+void CRed_Koopa::CreateCheckfall() {
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+	if (vx < 0)
+	{
+		CGameObject* add_object_left = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA, GetX() - KOOPA_RED_BBOX_WIDTH, y + 1, 0, 0);
+		AddCheck(add_object_left);
+		DebugOut(L">>> check tao obj left >>> \n");
+		checkfall->SetState(STATE_LEFT_KOOPA);
+		checkfall->SETay(0.00009f);
+
+
+	}
+	else
+	{
+		CGameObject* add_object_right = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA, GetX() + KOOPA_RED_BBOX_WIDTH, y + 1, 0/* KOOPA_RED_WALKING_SPEED*/, 0);
+
+		AddCheck(add_object_right);
+		DebugOut(L">>> check tao obj right >>> \n");
+		checkfall->SetState(STATE_RIGHT_KOOPA);
+		checkfall->SETay(0.00009f);
+
+	}
+
+}
+
+int CGreen_Koopa::LeftOrRightMarrio() {
+	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
+	if (mario->GetX() < GetX()) return 1;
+	else return -1;
+}
+
+
 void CKoopa::SetState(int state)
 {
 	CGameObject::SetState(state);
