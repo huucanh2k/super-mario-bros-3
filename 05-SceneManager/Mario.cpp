@@ -95,7 +95,7 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 {
 	CKoopa* koopa = dynamic_cast<CKoopa*>(e->obj);
-	// jump on top >> kill Koopa and deflect a bit 
+	// jump on top >> turn koopa into shell state 
 	if (e->ny < 0)
 	{
 		if (koopa->GetState() != KOOPA_STATE_DIE && koopa->GetState() != KOOPA_STATE_SHELL)
@@ -109,8 +109,8 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 	{
 		if (koopa->GetState() == KOOPA_STATE_SHELL)
 		{
-			koopa->SetState(KOOPA_STATE_DIE);
-			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			//Implement Koopa shell when hit by Mario
+
 		}
 		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 		{

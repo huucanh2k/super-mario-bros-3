@@ -82,10 +82,11 @@ void CKoopa::Render()
 	int ani = ID_ANI_KOOPA_WALKING_LEFT;
 	if (state == KOOPA_STATE_WALKING_RIGHT)
 		ani = ID_ANI_KOOPA_WALKING_RIGHT;
-	else if (state == KOOPA_STATE_DIE)
-		ani = ID_ANI_KOOPA_DIE;
 	else if (state == KOOPA_STATE_SHELL)
 		ani = ID_ANI_KOOPA_SHELL;
+	else if (state == KOOPA_STATE_DIE)
+		ani = ID_ANI_KOOPA_DIE;
+	
 	CAnimations::GetInstance()->Get(ani)->Render(x, y);
 	RenderBoundingBox();
 }
@@ -102,7 +103,8 @@ void CKoopa::SetState(int state)
 		vx = KOOPA_WALKING_SPEED;
 		break;
 	case KOOPA_STATE_SHELL:
-		vx = KOOPA_SHELL_SPEED;
+		vx = 0;
+		vy = 0;
 		shell_start = GetTickCount64();
 		break;
 	case KOOPA_STATE_DIE:
