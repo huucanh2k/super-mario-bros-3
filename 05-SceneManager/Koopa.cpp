@@ -6,7 +6,7 @@ CKoopa::CKoopa(float x, float y) : CGameObject(x, y)
 	this->ay = KOOPA_GRAVITY;
 	die_start = -1;
 	shell_start = -1;
-	SetState(KOOPA_STATE_WALKING);
+	SetState(KOOPA_STATE_WALKING_LEFT);
 }
 
 void CKoopa::GetBoundingBox(float& left, float& top, float& right, float& bottom)
@@ -50,7 +50,12 @@ void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 	}
 	else if (e->nx != 0)
 	{
-		vx = -vx;
+		if (state == KOOPA_STATE_WALKING_LEFT) {
+			SetState(KOOPA_STATE_WALKING_RIGHT);
+		}
+		else if (state == KOOPA_STATE_WALKING_RIGHT) {
+			SetState(KOOPA_STATE_WALKING_LEFT);
+		}
 	}
 }
 
@@ -65,7 +70,7 @@ void CKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	}
 	if ((state == KOOPA_STATE_SHELL) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
 	{
-		SetState(KOOPA_STATE_WALKING);
+		SetState(KOOPA_STATE_WALKING_LEFT);
 	}
 
 	CGameObject::Update(dt, coObjects);
@@ -74,8 +79,10 @@ void CKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 void CKoopa::Render()
 {
-	int ani = ID_ANI_KOOPA_WALKING;
-	if (state == KOOPA_STATE_DIE)
+	int ani = ID_ANI_KOOPA_WALKING_LEFT;
+	if (state == KOOPA_STATE_WALKING_RIGHT)
+		ani = ID_ANI_KOOPA_WALKING_RIGHT;
+	else if (state == KOOPA_STATE_DIE)
 		ani = ID_ANI_KOOPA_DIE;
 	else if (state == KOOPA_STATE_SHELL)
 		ani = ID_ANI_KOOPA_SHELL;
@@ -88,8 +95,11 @@ void CKoopa::SetState(int state)
 	CGameObject::SetState(state);
 	switch (state)
 	{
-	case KOOPA_STATE_WALKING:
+	case KOOPA_STATE_WALKING_LEFT:
 		vx = -KOOPA_WALKING_SPEED;
+		break;
+	case KOOPA_STATE_WALKING_RIGHT:
+		vx = KOOPA_WALKING_SPEED;
 		break;
 	case KOOPA_STATE_SHELL:
 		vx = KOOPA_SHELL_SPEED;

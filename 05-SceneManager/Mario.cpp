@@ -103,6 +103,7 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 			koopa->SetState(KOOPA_STATE_SHELL);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
+		
 	}
 	else if (e->ny > 0)
 	{
@@ -111,11 +112,29 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 			koopa->SetState(KOOPA_STATE_DIE);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
+		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+		{
+			if (e->ny > 0)
+			{
+				if (level > MARIO_LEVEL_SMALL)
+				{
+					level = MARIO_LEVEL_SMALL;
+					StartUntouchable();
+				}
+				else
+				{
+					DebugOut(L">>> Mario DIE >>> \n");
+					SetState(MARIO_STATE_DIE);
+				}
+			}
+		}
 	}
 	else if (e->nx != 0 && koopa->GetState() == KOOPA_STATE_SHELL)
 	{
-		if (e->nx < 0) koopa->SetState(KOOPA_STATE_WALKING);
-		else koopa->SetState(KOOPA_STATE_WALKING);
+		if (e->nx > 0)
+			koopa->SetState(KOOPA_STATE_WALKING_LEFT);
+		else
+			koopa->SetState(KOOPA_STATE_WALKING_RIGHT);
 	}
 	else // hit by Koopa
 	{
