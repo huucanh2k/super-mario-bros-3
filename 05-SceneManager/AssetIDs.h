@@ -18,6 +18,8 @@
 
 #define OBJECT_TYPE_PORTAL	50
 
+#define OBJECT_TYPE_MAP	60
+
 
 #pragma region MARIO 
 
