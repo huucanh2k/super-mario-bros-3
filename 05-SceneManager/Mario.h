@@ -133,6 +133,10 @@ public:
 		isOnPlatform = false;
 		coin = 0;
 	}
+	
+	float GetX();
+	float GetY();
+
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void Render();
 	void SetState(int state);

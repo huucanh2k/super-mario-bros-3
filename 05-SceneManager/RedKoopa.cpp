@@ -1,6 +1,8 @@
-#include "Koopa.h"
-#include "Goomba.h"
 
+#include "RedKoopa.h"
+#include "debug.h"
+#include "PlayScene.h"
+ 
 CKoopa::CKoopa(float x, float y) : CGameObject(x, y)
 {
 	this->ax = 0;
@@ -115,7 +117,7 @@ void CKoopa::Render()
 		ani = ID_ANI_KOOPA_DIE;
 	else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
 		ani = ID_ANI_KOOPA_SHELL_FAST_MOVING;
-	
+
 	CAnimations::GetInstance()->Get(ani)->Render(x, y);
 	RenderBoundingBox();
 }
@@ -126,6 +128,65 @@ int CKoopa::LeftOrRightMarrio() {
 	else return -1;
 }
 
+void CRedKoopa::CreateCheckfallSmall() {
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+	if (vx < 0)
+	{
+		CGameObject* add_object_left1 = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA_ON_GLASS_BRICK, GetX() - 1, GetY() + 6, 0, 0);
+		AddCheck(add_object_left1);
+		DebugOut(L">>> check tao obj left >>> \n");
+		checkfall->SetState(SMALL_STATE_LEFT_KOOPA);
+		//checkfall->SETay(0.0009f);
+	}
+	else if (vx >= 0)
+	{
+		CGameObject* add_object_right1 = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA_ON_GLASS_BRICK, GetX() + 1, GetY() + 6, 0/* KOOPA_RED_WALKING_SPEED*/, 0);
+
+		AddCheck(add_object_right1);
+		DebugOut(L">>> check tao obj right >>> \n");
+		checkfall->SetState(SMALL_STATE_RIGHT_KOOPA);
+		//checkfall->SETay(0.0009f);
+
+	}
+}
+
+void CRedKoopa::CreateCheckfall() {
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+	if (vx < 0)
+	{
+		CGameObject* add_object_left = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA, GetX() - KOOPA_RED_BBOX_WIDTH, GetY() + 1, 0, 0);
+		AddCheck(add_object_left);
+		DebugOut(L">>> check tao obj left >>> \n");
+		checkfall->SetState(STATE_LEFT_KOOPA);
+		checkfall->SETay(0.00009f);
+
+
+	}
+	else
+	{
+		CGameObject* add_object_right = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECKFALL_KOOPA, GetX() + KOOPA_RED_BBOX_WIDTH, GetY() + 1, 0/* KOOPA_RED_WALKING_SPEED*/, 0);
+
+		AddCheck(add_object_right);
+		DebugOut(L">>> check tao obj right >>> \n");
+		checkfall->SetState(STATE_RIGHT_KOOPA);
+		checkfall->SETay(0.00009f);
+
+	}
+
+}
+
+void CRedKoopa::AddCheck(CGameObject* obj) {
+	if (!dynamic_cast<CCheckFall*>(obj)) return;
+	else if (!checkfall)
+	{
+		CCheckFall* cfall_obj = dynamic_cast<CCheckFall*>(obj);
+		checkfall = cfall_obj;
+		DebugOut(L">>> check >>> \n");
+
+	}
+}
 
 void CKoopa::SetState(int state)
 {
@@ -151,7 +212,7 @@ void CKoopa::SetState(int state)
 		vx = KOOPA_SHELL_FAST_MOVING_SPEED;
 		vy = 0;
 		break;
-	case KOOPA_STATE_SHELL_HOLD: 
+	case KOOPA_STATE_SHELL_HOLD:
 		break;
 	case KOOPA_STATE_DIE:
 		die_start = GetTickCount64();

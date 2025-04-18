@@ -28,6 +28,16 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 	CCollision::GetInstance()->Process(this, dt, coObjects);
 }
 
+float CMario::GetX()
+{
+	return x;
+}
+
+float CMario::GetY()
+{
+	return y;
+}
+
 void CMario::OnNoCollision(DWORD dt)
 {
 	x += vx * dt;
