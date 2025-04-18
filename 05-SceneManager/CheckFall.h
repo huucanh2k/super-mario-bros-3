@@ -33,31 +33,25 @@ protected:
 
 	virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom);
 
-
-
 public:
 	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	virtual void Render();
+
+	bool IsFalling() {
+		return vy > 0.0004f;
+	}
 
 	int GetModel() { return model; }
 
 	virtual void SetState(int state);
 
-	//void SetIsOnPlatform(bool b) { isOnPlatformCheck = b; }
-
 	virtual int IsCollidable() { return 1; };
 	virtual int IsBlocking() { return 0; }
 	virtual void OnNoCollision(DWORD dt);
 
-	bool GetNoOntheBox() { return OnTheBox; }
-
-	//bool GetIsOnPlatForm2() { return isOnPlatformCheck; };
-
 	virtual void OnCollisionWith(LPCOLLISIONEVENT e);
-	virtual void OnCollisionWithPlatForm(LPCOLLISIONEVENT e);
 
 	void OnCollisionWithBackGround(LPCOLLISIONEVENT e);
-	//void OnCollisionWithGlassBrick(LPCOLLISIONEVENT e);
 	void OnCollisionWithBox(LPCOLLISIONEVENT e);
 	CCheckFall(float x, float y, int model);
 
@@ -65,19 +59,5 @@ public:
 	void GetDeleted() {
 		isDeleted = true;
 	}
-
-
-	bool GetIntheBox() { return OnTheBox; }
-	bool GetIsOnPlatform() { return isOnPlatformCheck; }
-
-
-	void SetIsOnPlatform(bool b) { b = isOnPlatformCheck; }
-
-	//set ay
 	void SETay(float y) { y = ay; }
-
-	/*bool checkfalling()
-	{
-		if (vy > 0.0004f) return true;
-	}*/
 };

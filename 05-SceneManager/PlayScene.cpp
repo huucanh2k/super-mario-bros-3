@@ -316,6 +316,95 @@ void CPlayScene::Update(DWORD dt)
 	PurgeDeletedObjects();
 }
 
+void CPlayScene::LoadHUD() {
+
+	//CHUD_1* hud = CHUD_1::GetInstance();
+
+	//CGame* game = CGame::GetInstance();
+
+	//hud = new CHUD_1(game->GetCameraX() + 150.0, game->GetCameraY() + 187.0);
+
+	//objects.push_back(hud);
+}
+
+CGameObject* CPlayScene::CreateObjectAndReturn(int id, float x, float y, float vx, float vy)
+{
+
+	int object_type = id;
+
+	CGameObject* obj = NULL;
+	//LoadHUD();
+
+	switch (object_type)
+	{
+
+	/*case OBJECT_TYPE_RED_KOOPA_WALKING: 
+		obj = new CRedKoopa(x, y, 1); 
+		break;*/
+
+	/*case OBJECT_TYPE_NEW_RED_KOOPA: 
+		obj = new CRedKoopa(x, y, 2); 
+		break;*/
+
+		//case OBJECT_TYPE_NEW_RED_KOOPA_ON_GLASS_BRICK: 
+		// obj = new CRed_Koopa(x, y,2); 
+		// break;
+
+	/*case OBJECT_TYPE_GREEN_KOOPA_WALKING: 
+		obj = new CGreen_Koopa(x, y, 1); 
+		break;*/
+
+	/*case OBJECT_TYPE_PARA_GOOMBA: 
+		obj = new CPara_Goomba(x, y); 
+		break;*/
+
+		//case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y, GOOMBA_BASIC); break;
+
+	case OBJECT_TYPE_CHECK_FALL: 
+		obj = new CCheckFall(x, y, 1); 
+		break;
+
+	case OBJECT_TYPE_CHECK_FALL_KOOPA_ON_GLASS_BRICK: 
+		obj = new CCheckFall(x, y, 2); 
+		break;
+
+	/*case OBJECT_TYPE_FIRE_BULLET_OF_PLANT: obj = new CbulletPlant(x, y, 0, 0); break;
+
+	case OBJECT_TYPE_GOOMBA_UNDER_KOOPA: obj = new CGoomba(x, y, GOOMBA_BASIC); break;
+
+	case OBJECT_TYPE_WHIPPING: obj = new CTailWhipping(x, y); break;
+
+	case OBJECT_TYPE_FRAG_GLASS_BRICK: obj = new CFragGlass(x, y, 0, 0); break;
+
+	case OBJECT_TYPE_FRAG_GLASS_BRICK_2: obj = new CFragGlass(x, y, 0, 0); break;*/
+
+		//case OBJECT_TYPE_NEW_RED_KOOPA: obj = new CRed_Koopa(x, y, 2); break;
+
+		//case OBJECT_TYPE_RED_KOOPA_WALKING: obj = new CRed_Koopa(x, y, 1); break;
+
+		//case OBJECT_TYPE_BUTTON_P: obj = new CButtonP(x, y); break;
+
+		//case OBJECT_TYPE_GLASS_BRICK_CHANGETO_COIN: obj = new CglassBrick(x, y, GLASS_BRICK_MODEL_NORMAL); break;
+
+
+
+
+
+	default:
+		DebugOut(L"[ERROR] Invalid object type: %d\n", object_type);
+		return NULL;
+	}
+
+	// General object setup
+	obj->SetPosition(x, y);
+
+
+	objects.push_back(obj);
+	return obj;
+
+}
+
+
 void CPlayScene::Render()
 {
 	CGame* game = CGame::GetInstance();

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameObject.h"
-#include "Koopa.h"
 #include "CheckFall.h"
  
 #define ID_ANI_RED_KOOPA_WALKING_LEFT 6100
@@ -11,7 +10,7 @@
 #define ID_ANI_RED_KOOPA_SHELL_FAST_MOVING 6104
 #define ID_ANI_RED_KOOPA_SHELL_HOLD 6105
 
-class CRedKoopa : public GameObject
+class CRedKoopa : public CGameObject
 {
 protected:
 	float ax;
@@ -37,9 +36,9 @@ protected:
 
 public:
 	CRedKoopa(float x, float y);
-	virtual void SetState(int state);
 
 	virtual void AddCheck(CGameObject* obj);
+	virtual void SetState(int state);
 
 	int LeftOrRightMarrio();
 };

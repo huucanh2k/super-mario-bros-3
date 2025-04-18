@@ -9,19 +9,16 @@
 #include "Game.h"
 #include "Goomba.h"
 #include "Box.h"
+#include "debug.h"
 
-#define OBJ_BBOX_WIDTH 13
-#define OBJ_BBOX_HEIGHT 18
+#define OBJ_BBOX_WIDTH 1
+#define OBJ_BBOX_HEIGHT 12
 
 CCheckFall::CCheckFall(float x, float y, int model) :CGameObject(x, y)
 {
-
 	this->model = model;
 	this->ax = 0;
 	this->ay = 0.016f;
-	//isOnPlatformCheck = false;
-	//OnTheBox = true;
-	//SetState(STATE_LEFT_KOOPA);
 }
 
 void CCheckFall::GetBoundingBox(float& l, float& t, float& r, float& b)
@@ -49,58 +46,20 @@ void CCheckFall::OnNoCollision(DWORD dt)
 
 void CCheckFall::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-	//if (!e->obj->IsBlocking()) return;
-
 	if (e->ny != 0)
 	{
 		vy = 0;
 		if (e->ny < 0) isOnPlatformCheck = true;
 	}
 
-
-	//if (dynamic_cast<CCheckFall*>(e->obj)) return;
-
-	//if (e->nx != 0)
-		//isDeleted = true;
-
-	//if (dynamic_cast<CBackground*>(e->obj))
-		//this->OnCollisionWithPlatForm(e);
 	if (dynamic_cast<CBox*>(e->obj))
 		this->OnCollisionWithBox(e);
-	/*else if (dynamic_cast<CglassBrick*>(e->obj))
-		OnCollisionWithGlassBrick(e)*/;
-
 }
 
-//void CCheckFall::OnCollisionWithGlassBrick(LPCOLLISIONEVENT e) {
-//
-//
-//
-//	CglassBrick* glassBrick = dynamic_cast<CglassBrick*>(e->obj);
-//	if (e->ny != 0)
-//	{
-//		vy = 0;
-//		if (e->ny < 0) isOnPlatformCheck = true;
-//
-//		model = 2;
-//	}
-//
-//
-//}
-
-void CCheckFall::OnCollisionWithPlatForm(LPCOLLISIONEVENT e) {
-	CBackground* platform = dynamic_cast<CBackground*>(e->obj);
-
-	isOnPlatformCheck = true;
-	vy = 0;
-
-}
 void CCheckFall::OnCollisionWithBox(LPCOLLISIONEVENT e) {
-	CBox* OntheBox = dynamic_cast<CBox*>(e->obj);
+	if (!e->obj->IsBlocking()) return;
 
-	//if (GetX() < (x-10)) isDeleted = true;
-
-	//if (GetX() > OntheBox->endBox) isDeleted = true;
+	CBox* box = dynamic_cast<CBox*>(e->obj);
 }
 
 void CCheckFall::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
@@ -110,28 +69,9 @@ void CCheckFall::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 	isOnPlatformCheck = false;
 
-
-	//if (GetX() < (x - 10)) isDeleted = true;
-	/*if (vx < 0) {
-		SetState(STATE_LEFT_KOOPA);
-	}
-	else if(vx>0) SetState(STATE_RIGHT_KOOPA);*/
-
-	//if (isOnPlatformCheck) isDeleted = true;
-
-
-	//if (!OnTheBox) isDeleted = true;
-
-	//if (!OnTheBox) isDeleted = true;
-
 	CGameObject::Update(dt, coObjects);
 	CCollision::GetInstance()->Process(this, dt, coObjects);
 }
-
-//void CCheckFall::OnCollisionWithPlatForm(LPCOLLISIONEVENT e)
-//{
-//
-//}
 
 
 void CCheckFall::Render()
@@ -153,8 +93,6 @@ void CCheckFall::SetState(int state)
 		break;
 
 	case STATE_RIGHT_KOOPA:
-
-
 		vx = SPEED_PREVIOUS_KOOPA;
 		vy = 0;
 		break;

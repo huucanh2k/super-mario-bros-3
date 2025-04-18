@@ -39,6 +39,10 @@ public:
 	virtual void Render();
 	virtual void Unload();
 
+	void LoadHUD();
+
+	CGameObject* CreateObjectAndReturn(int id, float x, float y, float vx, float vy);
+
 	LPGAMEOBJECT GetPlayer() { return player; }
 
 	void Clear();
