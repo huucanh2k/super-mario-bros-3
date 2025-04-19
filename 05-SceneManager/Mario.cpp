@@ -6,6 +6,7 @@
 
 #include "Goomba.h"
 #include "Koopa.h"
+#include "RedKoopa.h"
 #include "Coin.h"
 #include "Portal.h"
 
@@ -38,6 +39,15 @@ float CMario::GetY()
 	return y;
 }
 
+int CMario::GetDirection() {
+	if (state == MARIO_STATE_WALKING_RIGHT)
+		return 1;
+	else if (state == MARIO_STATE_WALKING_LEFT)
+		return -1;
+	else
+		return 0;
+}
+
 void CMario::OnNoCollision(DWORD dt)
 {
 	x += vx * dt;
@@ -62,6 +72,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithGoomba(e);
 	if (dynamic_cast<CKoopa*>(e->obj))
 		OnCollisionWithKoopa(e);
+	else if (dynamic_cast<CRedKoopa*>(e->obj))
+		OnCollisionWithRedKoopa(e);
 	else if (dynamic_cast<CCoin*>(e->obj))
 		OnCollisionWithCoin(e);
 	else if (dynamic_cast<CPortal*>(e->obj))
@@ -108,33 +120,27 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 	// jump on top >> turn koopa into shell state 
 	if (e->ny < 0)
 	{
+		if (koopa->GetState() == KOOPA_STATE_SHELL) {
+			if (e->nx < 0) {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
+			else {
+				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			return;
+		}
+
 		if (koopa->GetState() != KOOPA_STATE_DIE && koopa->GetState() != KOOPA_STATE_SHELL)
 		{
 			koopa->SetState(KOOPA_STATE_SHELL);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
-		else if (koopa->GetState() == KOOPA_STATE_SHELL) {
-			if (e->nx < 0) {
-				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
-			}
-			else {
-				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
-			}
-			vy = -MARIO_JUMP_DEFLECT_SPEED;
-		}
+		
 	}
-	else if (e->ny > 0) 
+	else if (e->ny > 0)
 	{
-		if (koopa->GetState() == KOOPA_STATE_SHELL) //Mario hit the koopa shell
-		{
-			if (e->nx < 0) {
-				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
-			}
-			else {
-				koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
-			}
-		}
-		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 		{
 			if (e->ny > 0)
 			{
@@ -153,6 +159,7 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 	}
 	else if (e->nx != 0 && koopa->GetState() == KOOPA_STATE_SHELL) //Mario hit koopa shell
 	{
+
 		if (e->nx < 0) {
 			koopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
 		}
@@ -164,22 +171,72 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 	{
 		if (untouchable == 0)
 		{
-			if (koopa->GetState() != KOOPA_STATE_DIE && koopa->GetState() != KOOPA_STATE_SHELL && koopa->GetState() != KOOPA_STATE_SHELL_FAST_MOVING_RIGHT && koopa->GetState() != KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
+			if (koopa->GetState() == KOOPA_STATE_DIE || koopa->GetState() == KOOPA_STATE_SHELL || koopa->GetState() == KOOPA_STATE_SHELL_HOLD)
+				return;
+			
+			if (level > MARIO_LEVEL_SMALL)
 			{
-				if (level > MARIO_LEVEL_SMALL)
-				{
-					level = MARIO_LEVEL_SMALL;
-					StartUntouchable();
-				}
-				else
-				{
-					DebugOut(L">>> Mario DIE >>> \n");
-					SetState(MARIO_STATE_DIE);
-				}
+				level = MARIO_LEVEL_SMALL;
+				StartUntouchable();
+			}
+			else
+			{
+				DebugOut(L">>> Mario DIE >>> \n");
+				SetState(MARIO_STATE_DIE);
 			}
 		}
 	}
 }
+
+void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
+	CRedKoopa* redKoopa = dynamic_cast<CRedKoopa*>(e->obj);
+
+	if (e->ny < 0)
+	{
+		if (redKoopa->GetState() == KOOPA_STATE_WALKING_LEFT || redKoopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+		{
+			redKoopa->SetState(KOOPA_STATE_SHELL);
+			DebugOut(L">>> Check turn into shell");
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+		else if (redKoopa->GetState() == KOOPA_STATE_SHELL) {
+			if (e->nx < 0) {
+				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+				DebugOut(L">>> Check turn shell moving right");
+			}
+			else {
+				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+				DebugOut(L">>> Check turn into shell  moving left");
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+	}
+	else if (e->ny > 0)
+	{
+		
+	}
+	else {
+		if (untouchable == 0)
+		{
+			if (redKoopa->GetState() == KOOPA_STATE_DIE || redKoopa->GetState() == KOOPA_STATE_SHELL || redKoopa->GetState() == KOOPA_STATE_SHELL_HOLD)
+				return;
+
+			if (level > MARIO_LEVEL_SMALL)
+			{
+				level = MARIO_LEVEL_SMALL;
+				StartUntouchable();
+			}
+			else
+			{
+				DebugOut(L">>> Mario DIE >>> \n");
+				SetState(MARIO_STATE_DIE);
+			}
+		}
+	}
+	
+}
+
+
 
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {

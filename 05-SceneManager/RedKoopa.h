@@ -32,7 +32,8 @@ protected:
 	virtual void OnCollisionWith(LPCOLLISIONEVENT e);
 
 	virtual void CreateCheckFall();
-	virtual void CreateCheckFallSmall();
+
+	virtual void CheckFall();
 
 public:
 	CRedKoopa(float x, float y);

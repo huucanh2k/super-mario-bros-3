@@ -56,6 +56,10 @@ public:
 		return vy;
 	}
 
+	int GetNx() {
+		return nx;
+	}
+
 	void RenderBoundingBox();
 
 	CGameObject();

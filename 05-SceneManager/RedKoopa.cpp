@@ -3,6 +3,8 @@
 #include "debug.h"
 #include "PlayScene.h"
 #include "AssetIDs.h"
+#include "Box.h"
+#include "Mario.h"
  
 CRedKoopa::CRedKoopa(float x, float y) : CGameObject(x, y)
 {
@@ -85,6 +87,7 @@ void CRedKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 			return;
 		}
 	};
+
 	if (e->ny != 0)
 	{
 		vy = 0;
@@ -92,57 +95,77 @@ void CRedKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 
 	else if (e->nx != 0)
 	{
-		if (state == KOOPA_STATE_WALKING_LEFT) {
-			SetState(KOOPA_STATE_WALKING_RIGHT);
-		}
-		else if (state == KOOPA_STATE_WALKING_RIGHT) {
-			SetState(KOOPA_STATE_WALKING_LEFT);
-		}
-		else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT) {
-			SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
-		}
-		else if (state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
-			SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+		if (dynamic_cast<CBox*>(e->obj)) {
+			if (state == KOOPA_STATE_WALKING_LEFT) {
+				SetState(KOOPA_STATE_WALKING_RIGHT);
+			}
+			else if (state == KOOPA_STATE_WALKING_RIGHT) {
+				SetState(KOOPA_STATE_WALKING_LEFT);
+			}
+			else if (state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
+			{
+				SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
+			else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT) {
+				SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
 		}
 	}
 }
 
 void CRedKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-	vy += ay * dt;
-	vx += ax * dt;
-	if ((state == KOOPA_STATE_DIE) && (GetTickCount64() - die_start > KOOPA_DIE_TIMEOUT))
-	{
-		isDeleted = true;
-		return;
-	}
-	if ((state == KOOPA_STATE_SHELL || state == KOOPA_STATE_SHELL_HOLD) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
-	{
-		SetState(KOOPA_STATE_WALKING_LEFT);
-		return;
-	}
+vy += ay * dt;
+vx += ax * dt;
+CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
 
-	if (checkFall != NULL)
-	{
-		float offsetX = (vx < 0) ? -KOOPA_BBOX_WIDTH : KOOPA_BBOX_WIDTH; // Offset based on direction
-		checkFall->SetPosition(x + offsetX, y);
+if ((state == KOOPA_STATE_DIE) && (GetTickCount64() - die_start > KOOPA_DIE_TIMEOUT))
+{
+	isDeleted = true;
+	return;
+}
+if ((state == KOOPA_STATE_SHELL || state == KOOPA_STATE_SHELL_HOLD) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
+{
+	SetState(KOOPA_STATE_WALKING_LEFT);
+	return;
+}
 
-		// Check if checkFall is no longer on a platform
-		if (checkFall->IsFalling())
+if (mario->GetIsHolding()) {
+	if (state == KOOPA_STATE_SHELL)
+	{
+		SetState(KOOPA_STATE_SHELL_HOLD);
+	}
+	else if (state == KOOPA_STATE_SHELL_HOLD) {
+		float marioX, marioY, marioDirection;
+		marioX = mario->GetX();
+		marioY = mario->GetY();
+		SetPosition(marioX + mario->GetNx() * MARIO_BIG_BBOX_WIDTH - 1, marioY - 1);
+	}
+	return;
+}
+else {
+	if (state == KOOPA_STATE_SHELL_HOLD)
+	{
+		if (LeftOrRightMarrio() == 1)
 		{
-
-			// Turn Koopa before falling
-			if (vx < 0)
-				SetState(KOOPA_STATE_WALKING_RIGHT);
-			else
-				SetState(KOOPA_STATE_WALKING_LEFT);
-
-			checkFall->SetPosition(x + -offsetX, y);
+			SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			DebugOut(L">>> Check turn into shell moving right >>> \n");
+		}
+		else if (LeftOrRightMarrio() == -1)
+		{
+			SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			DebugOut(L">>> Check turn into shell moving left >>> \n");
 		}
 	}
+}
 
-	CGameObject::Update(dt, coObjects);
-	CCollision::GetInstance()->Process(this, dt, coObjects);
+if (checkFall != NULL && (GetState() != KOOPA_STATE_SHELL_FAST_MOVING_LEFT && GetState() != KOOPA_STATE_SHELL_FAST_MOVING_RIGHT))
+{
+	CheckFall();
+}
+
+CGameObject::Update(dt, coObjects);
+CCollision::GetInstance()->Process(this, dt, coObjects);
 }
 
 void CRedKoopa::AddCheck(CGameObject* obj) {
@@ -157,18 +180,34 @@ void CRedKoopa::AddCheck(CGameObject* obj) {
 	}
 }
 
-void CRedKoopa::CreateCheckFallSmall() {
-	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+int CRedKoopa::LeftOrRightMarrio() {
+	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
+	if (mario->GetX() < GetX()) return 1;
+	else return -1;
+}
 
+
+void CRedKoopa::CheckFall()
+{
 	float offsetX = (vx < 0) ? -KOOPA_BBOX_WIDTH : KOOPA_BBOX_WIDTH; // Offset based on direction
-	CGameObject* add_object = scene->CreateObjectAndReturn(OBJECT_TYPE_CHECK_FALL, x + offsetX, y, 0, 0);
-	AddCheck(add_object);
+	checkFall->SetPosition(x + offsetX, y);
 
-	if (checkFall != NULL)
+	// Check if checkFall is no longer on a platform
+	if (checkFall->IsFalling())
 	{
-		int state = (vx < 0) ? STATE_LEFT_KOOPA : STATE_RIGHT_KOOPA;
-		checkFall->SetState(state);
-		checkFall->SETay(0.00009f);
+		// Turn Koopa before falling
+		if (GetState() == KOOPA_STATE_WALKING_LEFT)
+		{
+			SetState(KOOPA_STATE_WALKING_RIGHT);
+			checkFall->SetPosition(x + -offsetX, y);
+			DebugOut(L">>> check turn right >>> \n");
+		}
+		else if (KOOPA_STATE_WALKING_RIGHT)
+		{
+			SetState(KOOPA_STATE_WALKING_LEFT);
+			checkFall->SetPosition(x + -offsetX, y);
+			DebugOut(L">>> check turn left >>> \n");
+		}
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "Koopa.h"
 #include "Goomba.h"
+#include "Box.h"
 
 CKoopa::CKoopa(float x, float y) : CGameObject(x, y)
 {
@@ -70,17 +71,20 @@ void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 
 	else if (e->nx != 0)
 	{
-		if (state == KOOPA_STATE_WALKING_LEFT) {
-			SetState(KOOPA_STATE_WALKING_RIGHT);
-		}
-		else if (state == KOOPA_STATE_WALKING_RIGHT) {
-			SetState(KOOPA_STATE_WALKING_LEFT);
-		}
-		else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT) {
-			SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
-		}
-		else if (state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
-			SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+		if (dynamic_cast<CBox*>(e->obj)) {
+			if (state == KOOPA_STATE_WALKING_LEFT) {
+				SetState(KOOPA_STATE_WALKING_RIGHT);
+			}
+			else if (state == KOOPA_STATE_WALKING_RIGHT) {
+				SetState(KOOPA_STATE_WALKING_LEFT);
+			}
+			else if (state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT)
+			{
+				SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
+			}
+			else if (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT) {
+				SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
+			}
 		}
 	}
 }
