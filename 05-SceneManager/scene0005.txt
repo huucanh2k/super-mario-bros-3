@@ -5,6 +5,8 @@ coin.txt
 cloud.txt
 brick.txt
 koopa.txt
+para_goomba.txt
+
 map.txt
 #
 [MAP]
@@ -21,7 +23,10 @@ map.txt
 3	600	200
 
 #RED KOOPA
-7	500	200	
+7	500	200
+
+#RED PARA GOOMBA
+10	500	200	
 
 #COIN
 4	100	120

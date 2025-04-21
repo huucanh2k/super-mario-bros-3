@@ -21,11 +21,8 @@
 
 #define MARIO_STATE_DIE				-10
 #define MARIO_STATE_IDLE			0
-#define MARIO_STATE_IDLE_AND_HOLDING	1
 #define MARIO_STATE_WALKING_RIGHT	100
-#define MARIO_STATE_WALKING_AND_HOLDING_RIGHT	101
 #define MARIO_STATE_WALKING_LEFT	200
-#define MARIO_STATE_WALKING_AND_HOLDING_LEFT	201
 
 #define MARIO_STATE_JUMP			300
 #define MARIO_STATE_RELEASE_JUMP    301
@@ -40,36 +37,44 @@
 #define MARIO_STATE_SIT_AND_HOLD	602
 #define MARIO_STATE_SIT_RELEASE_AND_HOLD	603
 
+#define MARIO_STATE_IS_KICKING	700
+
+#define MARIO_STATE_HOLDING_WALK_LEFT	800
+#define MARIO_STATE_HOLDING_WALK_RIGHT	801
+#define MARIO_STATE_HOLDING_IDLE_LEFT	802
+#define MARIO_STATE_HOLDING_IDLE_RIGHT	803
+
 #pragma region ANIMATION_ID
 
 #define ID_ANI_MARIO_IDLE_RIGHT 400
 #define ID_ANI_MARIO_IDLE_LEFT 401
-#define ID_ANI_MARIO_IDLE_AND_HOLDING_LEFT	402
-#define ID_ANI_MARIO_IDLE_AND_HOLDING_RIGHT 403
 
 #define ID_ANI_MARIO_WALKING_RIGHT 500
 #define ID_ANI_MARIO_WALKING_LEFT 501
-#define ID_ANI_MARIO_WALKING_AND_HOLDING_RIGHT 502	
-#define ID_ANI_MARIO_WALKING_AND_HOLDING_LEFT 503
 
 #define ID_ANI_MARIO_RUNNING_RIGHT 600
 #define ID_ANI_MARIO_RUNNING_LEFT 601
 
 #define ID_ANI_MARIO_JUMP_WALK_RIGHT 700
 #define ID_ANI_MARIO_JUMP_WALK_LEFT 701
-#define ID_ANI_MARIO_JUMP_WALK_AND_HOLDING_RIGHT 702
-#define ID_ANI_MARIO_JUMP_WALK_AND_HOLDING_LEFT 703
 
 #define ID_ANI_MARIO_JUMP_RUN_RIGHT 800
 #define ID_ANI_MARIO_JUMP_RUN_LEFT 801
 
 #define ID_ANI_MARIO_SIT_RIGHT 900
 #define ID_ANI_MARIO_SIT_LEFT 901
-#define ID_ANI_MARIO_SIT_AND_HOLDING_RIGHT 902
-#define ID_ANI_MARIO_SIT_AND_HOLDING_LEFT 903
 
-#define ID_ANI_MARIO_BRACE_RIGHT 1000
-#define ID_ANI_MARIO_BRACE_LEFT 1001
+#define ID_ANI_MARIO_HOLDING_IDLE_LEFT 902
+#define ID_ANI_MARIO_HOLDING_IDLE_RIGHT 903
+#define ID_ANI_MARIO_HOLDING_WALK_LEFT 904
+#define ID_ANI_MARIO_HOLDING_WALK_RIGHT 905
+
+#define ID_ANI_MARIO_KICK_LEFT	950
+#define ID_ANI_MARIO_KICK_RIGHT	951	
+
+
+#define ID_ANI_MARIO_BRACE_LEFT 1000
+#define ID_ANI_MARIO_BRACE_RIGHT 1001
 
 #define ID_ANI_MARIO_DIE 999
 
@@ -111,11 +116,15 @@
 
 
 #define MARIO_UNTOUCHABLE_TIME 2500
+#define MARIO_KICKING_TIME 500
 
 class CMario : public CGameObject
 {
 	BOOLEAN isSitting;
 	BOOLEAN isHolding;
+	BOOLEAN isHoldingShell;
+	BOOLEAN isKicking;
+	BOOLEAN isRunning;
 	float maxVx;
 	float ax;				// acceleration on x 
 	float ay;				// acceleration on y 
@@ -123,8 +132,10 @@ class CMario : public CGameObject
 	int level; 
 	int untouchable; 
 	ULONGLONG untouchable_start;
+	ULONGLONG kick_start;
 	BOOLEAN isOnPlatform;
 	int coin; 
+	
 
 	void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
@@ -140,6 +151,9 @@ public:
 	{
 		isSitting = false;
 		isHolding = false;
+		isKicking = false;
+		isRunning = false;
+		isHoldingShell = false;
 		maxVx = 0.0f;
 		ax = 0.0f;
 		ay = MARIO_GRAVITY; 
@@ -149,6 +163,7 @@ public:
 		untouchable_start = -1;
 		isOnPlatform = false;
 		coin = 0;
+		kick_start = -1;
 	}
 	
 	float GetX();
@@ -173,7 +188,9 @@ public:
 	void SetLevel(int l);
 	void StartUntouchable() { untouchable = 1; untouchable_start = GetTickCount64(); }
 	void SetIsHolding(bool holding) { isHolding = holding; }
+	void SetIsHoldingShell(bool holdingShell) { isHoldingShell = holdingShell; }
 
 	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
 	bool GetIsHolding() { return isHolding; }
+	bool GetIsHoldingShell() { return isHoldingShell; }
 };

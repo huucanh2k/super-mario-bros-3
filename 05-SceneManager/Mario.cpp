@@ -19,6 +19,11 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 
 	if (abs(vx) > abs(maxVx)) vx = maxVx;
 
+	if (isKicking && GetTickCount64() - kick_start > MARIO_KICKING_TIME) {
+		state = MARIO_STATE_IDLE;
+		DebugOut(L">>> Check kicking");
+	}
+
 	// reset untouchable timer if untouchable time has passed
 	if ( GetTickCount64() - untouchable_start > MARIO_UNTOUCHABLE_TIME) 
 	{
@@ -191,10 +196,11 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 	CRedKoopa* redKoopa = dynamic_cast<CRedKoopa*>(e->obj);
 
+	// Mario hit on the koopa's head
 	if (e->ny < 0)
 	{
 		if (redKoopa->GetState() == KOOPA_STATE_WALKING_LEFT || redKoopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
-		{
+		{	
 			redKoopa->SetState(KOOPA_STATE_SHELL);
 			DebugOut(L">>> Check turn into shell");
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
@@ -208,6 +214,11 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
 				DebugOut(L">>> Check turn into shell  moving left");
 			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+		else if (redKoopa->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT || redKoopa->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT)
+		{
+			redKoopa->SetState(KOOPA_STATE_SHELL);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
 	}
@@ -343,6 +354,23 @@ int CMario::GetAniIdBig()
 			else
 				aniId = ID_ANI_MARIO_SIT_LEFT;
 		}
+		else if (isKicking) {
+			if (nx > 0)
+				aniId = ID_ANI_MARIO_KICK_RIGHT;
+			else
+				aniId = ID_ANI_MARIO_KICK_LEFT;
+		}
+		else if (isHoldingShell) {
+			if (vx != 0) {
+				if (nx > 0)
+					aniId = ID_ANI_MARIO_HOLDING_WALK_RIGHT;
+				else
+					aniId = ID_ANI_MARIO_HOLDING_WALK_LEFT;
+			}
+			else {
+				aniId = ID_ANI_MARIO_HOLDING_IDLE_RIGHT;
+			}
+		}	
 		else
 			if (vx == 0)
 			{
@@ -460,6 +488,41 @@ void CMario::SetState(int state)
 	case MARIO_STATE_IDLE:
 		ax = 0.0f;
 		vx = 0.0f;
+		break;
+
+	case MARIO_STATE_HOLDING_IDLE_LEFT:
+		if (isSitting) break;
+		maxVx = 0;
+		ax = 0;
+		nx = -1;
+		break;
+	
+	case MARIO_STATE_HOLDING_IDLE_RIGHT:
+		if (isSitting) break;
+		maxVx = 0;
+		ax = 0;
+		nx = 1;
+		break;
+
+	case MARIO_STATE_HOLDING_WALK_LEFT:
+		if (isSitting) break;
+		maxVx = -MARIO_WALKING_SPEED;
+		ax = -MARIO_ACCEL_WALK_X;
+		nx = -1;
+		break;	
+
+	case MARIO_STATE_HOLDING_WALK_RIGHT:
+		if (isSitting) break;
+		maxVx = MARIO_WALKING_SPEED;
+		ax = MARIO_ACCEL_WALK_X;
+		nx = 1;
+		break;
+
+	case MARIO_STATE_IS_KICKING:
+		if (isSitting) break;
+		isKicking = true;
+		kick_start = GetTickCount64();
+		DebugOut(L">>> Kicking >>> \n");
 		break;
 
 	case MARIO_STATE_DIE:

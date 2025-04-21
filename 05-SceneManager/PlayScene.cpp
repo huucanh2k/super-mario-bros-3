@@ -11,6 +11,7 @@
 #include "Platform.h"
 #include "Map.h"
 #include "Box.h"
+#include "RedParaGoomba.h"
 
 #include "SampleKeyEventHandler.h"
 
@@ -145,6 +146,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
 	case OBJECT_TYPE_KOOPA: obj = new CKoopa(x, y); break;
 	case OBJECT_TYPE_RED_KOOPA: obj = new CRedKoopa(x, y); break;
+	case OBJECT_TYPE_RED_PARA_GOOMBA: obj = new CRedParaGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
 
@@ -385,9 +387,6 @@ CGameObject* CPlayScene::CreateObjectAndReturn(int id, float x, float y, float v
 		//case OBJECT_TYPE_BUTTON_P: obj = new CButtonP(x, y); break;
 
 		//case OBJECT_TYPE_GLASS_BRICK_CHANGETO_COIN: obj = new CglassBrick(x, y, GLASS_BRICK_MODEL_NORMAL); break;
-
-
-
 
 
 	default:

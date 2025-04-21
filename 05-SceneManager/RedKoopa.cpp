@@ -127,19 +127,33 @@ if ((state == KOOPA_STATE_DIE) && (GetTickCount64() - die_start > KOOPA_DIE_TIME
 if ((state == KOOPA_STATE_SHELL || state == KOOPA_STATE_SHELL_HOLD) && (GetTickCount64() - shell_start > KOOPA_SHELL_TIMEOUT))
 {
 	SetState(KOOPA_STATE_WALKING_LEFT);
+	float offsetX = -KOOPA_BBOX_WIDTH;
+	checkFall->SetPosition(x + offsetX, y);
+	mario->SetState(MARIO_STATE_IDLE);
+	mario->SetIsHolding(false);
+	mario->SetIsHoldingShell(false);
 	return;
 }
 
-if (mario->GetIsHolding()) {
+if (state == KOOPA_STATE_SHELL) {
+	if (mario->GetIsHolding()) {
+		mario->SetIsHoldingShell(true);
+	}
+}
+
+if (mario->GetIsHoldingShell()) {
 	if (state == KOOPA_STATE_SHELL)
 	{
 		SetState(KOOPA_STATE_SHELL_HOLD);
+	}
+	else if (!mario->GetIsHolding() && state == KOOPA_STATE_SHELL_HOLD) {
+		mario->SetIsHoldingShell(false);
 	}
 	else if (state == KOOPA_STATE_SHELL_HOLD) {
 		float marioX, marioY, marioDirection;
 		marioX = mario->GetX();
 		marioY = mario->GetY();
-		SetPosition(marioX + mario->GetNx() * MARIO_BIG_BBOX_WIDTH - 1, marioY - 1);
+		SetPosition(marioX + mario->GetNx() * MARIO_BIG_BBOX_WIDTH, marioY - 1);
 	}
 	return;
 }
