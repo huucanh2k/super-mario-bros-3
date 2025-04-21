@@ -3,15 +3,18 @@
 #include "Mario.h"
 #include "Animation.h"
 #include "debug.h"
+#include "Platform.h"
 
 CRedParaGoomba::CRedParaGoomba(float x, float y) :CGameObject(x, y)
 {
 	this->ax = 0;
 	this->ay = RED_PARA_GOOMBA_GRAVITY;
 	die_start = -1;
-	jump_count_start = -1;
+	jumpping_start = -1;
+	walking_start = -1;
 	isWinged = true;
 	isJumping = false;
+	hopCount = 0;
 	SetState(RED_PARA_GOOMBA_STATE_WALKING);
 }
 
@@ -23,6 +26,12 @@ void CRedParaGoomba::GetBoundingBox(float& left, float& top, float& right, float
 		top = y - RED_PARA_GOOMBA_BBOX_HEIGHT_DIE / 2;
 		right = left + RED_PARA_GOOMBA_BBOX_WIDTH;
 		bottom = top + RED_PARA_GOOMBA_BBOX_HEIGHT_DIE;
+	}
+	else if (isWinged) {
+		left = x - RED_PARA_GOOMBA_BBOX_WIDTH / 2;
+		top = y - RED_WINGED_PARA_GOOMBA_HEIHT / 2;
+		right = left + RED_PARA_GOOMBA_BBOX_WIDTH;
+		bottom = top + RED_WINGED_PARA_GOOMBA_HEIHT;
 	}
 	else
 	{
@@ -44,7 +53,12 @@ void CRedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 	if (!e->obj->IsBlocking()) {
 		if (dynamic_cast<CRedParaGoomba*>(e->obj)) {
 			if (e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
-				SetState(RED_PARA_GOOMBA_STATE_DIE);
+				if (isWinged) {
+					isWinged = false;
+				}
+				else {
+					SetState(RED_PARA_GOOMBA_STATE_DIE);
+				}
 				return;
 			}
 		}
@@ -57,9 +71,20 @@ void CRedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 	{
 		vy = 0;
 	}
-	else if (e->nx != 0)
+	else if (e->nx != 0 && e->obj->IsBlocking())
 	{
 		vx = -vx;
+	}
+
+	if (dynamic_cast<CPlatform*>(e->obj))
+		OnCollisionWithPlatform(e);
+}
+
+void CRedParaGoomba::OnCollisionWithPlatform(LPCOLLISIONEVENT e) {
+	CPlatform* platform = dynamic_cast<CPlatform*>(e->obj);
+	if (e->ny < 0) {
+		isOnPlatform = true;
+		y = platform->GetY() - RED_PARA_GOOMBA_BBOX_HEIGHT + 1;
 	}
 }
 
@@ -74,13 +99,21 @@ void CRedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		return;
 	}
 
-	if (state == RED_PARA_GOOMBA_STATE_WALKING && GetTickCount64() - jump_count_start > RED_PARA_GOOMBA_WALKING_TIMEOUT)
-	{
-		SetState(RED_PARA_GOOMBA_STATE_JUMPING);
-	}
-	else if (state == RED_PARA_GOOMBA_STATE_JUMPING && isOnPlatform)
-	{
-		SetState(RED_PARA_GOOMBA_STATE_WALKING);
+	if (isOnPlatform) {
+		if (state == RED_PARA_GOOMBA_STATE_WALKING && GetTickCount64() - walking_start > RED_PARA_GOOMBA_WALKING_TIMEOUT) {
+			if (hopCount < 2) {
+				SetState(RED_PARA_GOOMBA_STATE_HOPPING);
+				hopCount++;
+			}
+			else {
+				SetState(RED_PARA_GOOMBA_STATE_JUMPING);
+				hopCount = 0;
+			}
+		}
+		else if ((state == RED_PARA_GOOMBA_STATE_JUMPING || state == RED_PARA_GOOMBA_STATE_HOPPING) && GetTickCount64() - jumpping_start > RED_PARA_GOOMBA_JUMPING_TIMEOUT) {
+			SetState(RED_PARA_GOOMBA_STATE_WALKING);
+			DebugOut(L">>>Check walking");
+		}
 	}
 
 	CGameObject::Update(dt, coObjects);
@@ -97,6 +130,8 @@ void CRedParaGoomba::Render()
 			aniId = ID_ANI_RED_WINGED_PARA_GOOMBA_WALKING;
 		else if (state == RED_PARA_GOOMBA_STATE_JUMPING)
 			aniId = ID_ANI_RED_WINGED_PARA_GOOMBA_JUMPING;
+		else if (state == RED_PARA_GOOMBA_STATE_HOPPING)
+			aniId = ID_ANI_RED_WINGED_PARA_GOOMBA_HOPPING;
 	}
 	else {
 		if (state == RED_PARA_GOOMBA_STATE_WALKING)
@@ -134,8 +169,8 @@ void CRedParaGoomba::SetState(int state)
 			vx = -RED_PARA_GOOMBA_WALKING_SPEED;
 		vy = 0;
 		isOnPlatform = true;
+		walking_start = GetTickCount64();
 		vy = 0;
-		jump_count_start = GetTickCount64();
 		break;
 
 	case RED_PARA_GOOMBA_STATE_JUMPING:
@@ -145,12 +180,15 @@ void CRedParaGoomba::SetState(int state)
 			vx = -RED_PARA_GOOMBA_WALKING_SPEED;
 		vy = -RED_PARA_GOOMBA_FLYING_SPEED;
 		isOnPlatform = false;
+		jumpping_start = GetTickCount64();
 		break;
-
-	case RED_PARA_GOOMBA_STATE_FALLING:
-		vx = 0;
-		vy = RED_PARA_GOOMBA_GRAVITY;
-		isJumping = false;
+	case RED_PARA_GOOMBA_STATE_HOPPING:
+		if (mario->GetX() > x)
+			vx = RED_PARA_GOOMBA_WALKING_SPEED;
+		else
+			vx = -RED_PARA_GOOMBA_WALKING_SPEED;
+		vy = -RED_PARA_GOOMBA_HOPPING_SPEED;
+		isOnPlatform = false;
 		break;
 	}
 }

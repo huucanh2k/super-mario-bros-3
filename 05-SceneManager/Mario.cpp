@@ -7,6 +7,7 @@
 #include "Goomba.h"
 #include "Koopa.h"
 #include "RedKoopa.h"
+#include "RedParaGoomba.h"
 #include "Coin.h"
 #include "Portal.h"
 
@@ -75,6 +76,8 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 
 	if (dynamic_cast<CGoomba*>(e->obj))
 		OnCollisionWithGoomba(e);
+	else if (dynamic_cast<CRedParaGoomba*>(e->obj))
+		OnCollisionWithRedParaGoomba(e);
 	if (dynamic_cast<CKoopa*>(e->obj))
 		OnCollisionWithKoopa(e);
 	else if (dynamic_cast<CRedKoopa*>(e->obj))
@@ -103,6 +106,44 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 		if (untouchable == 0)
 		{
 			if (goomba->GetState() != GOOMBA_STATE_DIE)
+			{
+				if (level > MARIO_LEVEL_SMALL)
+				{
+					level = MARIO_LEVEL_SMALL;
+					StartUntouchable();
+				}
+				else
+				{
+					DebugOut(L">>> Mario DIE >>> \n");
+					SetState(MARIO_STATE_DIE);
+				}
+			}
+		}
+	}
+}
+
+void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
+{
+	CRedParaGoomba* redParaGoomba = dynamic_cast<CRedParaGoomba*>(e->obj);
+	// jump on top >> kill Goomba and deflect a bit 
+	if (e->ny < 0)
+	{
+		if (redParaGoomba->GetState() != RED_PARA_GOOMBA_STATE_DIE)
+		{
+			if (redParaGoomba->GetIsWinged()) {
+				redParaGoomba->SetIsWinged(false);
+			}
+			else {
+				redParaGoomba->SetState(RED_PARA_GOOMBA_STATE_DIE);
+			}
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+		}
+	}
+	else 
+	{
+		if (untouchable == 0)
+		{
+			if (redParaGoomba->GetState() != RED_PARA_GOOMBA_STATE_DIE)
 			{
 				if (level > MARIO_LEVEL_SMALL)
 				{
