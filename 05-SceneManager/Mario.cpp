@@ -7,6 +7,8 @@
 #include "Goomba.h"
 #include "Coin.h"
 #include "Portal.h"
+#include "BrickQuestion.h"
+#include "PlayScene.h"
 
 #include "Collision.h"
 
@@ -53,6 +55,32 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithCoin(e);
 	else if (dynamic_cast<CPortal*>(e->obj))
 		OnCollisionWithPortal(e);
+	else if (dynamic_cast<CBrickQuestion*>(e->obj))
+		OnCollisionWithBrickQuestion(e);
+	
+}
+
+void CMario::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e)
+{
+	CBrickQuestion* brick_question = dynamic_cast<CBrickQuestion*>(e->obj);
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+	int x = brick_question->GetX();
+	int y = brick_question->GetY();
+
+	// jump on top >> kill Goomba and deflect a bit 
+	if (e->ny > 0) {
+		if (!brick_question->GetIsEmpty()) {
+			brick_question->SetState(BRICK_QUESTION_STATE_UP);
+			brick_question->SetIsUnbox(true);
+			if (brick_question->GetModel() == BRICK_QUESTION_COIN) {
+				CCoin* coinSummon = new CCoin(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN));
+				scene->AddObject(coinSummon);
+				coinSummon->SetState(COIN_SUMMON_STATE);
+				coin++;
+			}
+		}
+	}
+
 }
 
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
