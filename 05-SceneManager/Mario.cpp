@@ -288,8 +288,6 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 	
 }
 
-
-
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {
 	e->obj->Delete();
@@ -332,6 +330,23 @@ int CMario::GetAniIdSmall()
 				aniId = ID_ANI_MARIO_SIT_RIGHT;
 			else
 				aniId = ID_ANI_MARIO_SIT_LEFT;
+		} 
+		else if (isKicking) {
+			if (nx > 0)
+				aniId = ID_ANI_MARIO_SMALL_KICK_RIGHT;
+			else
+				aniId = ID_ANI_MARIO_SMALL_KICK_LEFT;
+		}
+		else if (isHoldingShell) {
+			if (vx != 0) {
+				if (nx > 0)
+					aniId = ID_ANI_MARIO_SMALL_HOLDING_WALK_RIGHT;
+				else
+					aniId = ID_ANI_MARIO_SMALL_HOLDING_WALK_LEFT;
+			}
+			else {
+				aniId = ID_ANI_MARIO_SMALL_HOLDING_IDLE_RIGHT;
+			}
 		}
 		else
 			if (vx == 0)

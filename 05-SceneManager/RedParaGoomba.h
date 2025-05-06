@@ -57,6 +57,7 @@ protected:
 
 	virtual void OnCollisionWith(LPCOLLISIONEVENT e);
 	virtual void OnCollisionWithPlatform(LPCOLLISIONEVENT e);
+	virtual void OnCollisionWithRedKoopa(LPCOLLISIONEVENT e);
 
 public:
 	CRedParaGoomba(float x, float y);

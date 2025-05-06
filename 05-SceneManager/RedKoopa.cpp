@@ -153,7 +153,7 @@ if (mario->GetIsHoldingShell()) {
 		float marioX, marioY, marioDirection;
 		marioX = mario->GetX();
 		marioY = mario->GetY();
-		SetPosition(marioX + mario->GetNx() * MARIO_BIG_BBOX_WIDTH, marioY - 1);
+		SetPosition(marioX + mario->GetNx() * MARIO_BIG_BBOX_WIDTH, marioY - 2);
 	}
 	return;
 }

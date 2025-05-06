@@ -4,6 +4,7 @@
 #include "Animation.h"
 #include "debug.h"
 #include "Platform.h"
+#include "RedKoopa.h"
 
 CRedParaGoomba::CRedParaGoomba(float x, float y) :CGameObject(x, y)
 {
@@ -51,18 +52,9 @@ void CRedParaGoomba::OnNoCollision(DWORD dt)
 void CRedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 {
 	if (!e->obj->IsBlocking()) {
-		if (dynamic_cast<CRedParaGoomba*>(e->obj)) {
-			if (e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
-				if (isWinged) {
-					isWinged = false;
-				}
-				else {
-					SetState(RED_PARA_GOOMBA_STATE_DIE);
-				}
-				return;
-			}
+		if (dynamic_cast<CRedKoopa*>(e->obj)) {
+			OnCollisionWithRedKoopa(e);
 		}
-		return;
 	}
 
 	if (dynamic_cast<CRedParaGoomba*>(e->obj) ) return;
@@ -80,6 +72,18 @@ void CRedParaGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithPlatform(e);
 }
 
+void CRedParaGoomba::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
+	if (e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
+		if (isWinged) {
+			isWinged = false;
+		}
+		else {
+			SetState(RED_PARA_GOOMBA_STATE_DIE);
+		}
+		return;
+	}
+}
+
 void CRedParaGoomba::OnCollisionWithPlatform(LPCOLLISIONEVENT e) {
 	CPlatform* platform = dynamic_cast<CPlatform*>(e->obj);
 	if (e->ny < 0) {
@@ -90,6 +94,8 @@ void CRedParaGoomba::OnCollisionWithPlatform(LPCOLLISIONEVENT e) {
 
 void CRedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
+
+
 	vy += ay * dt;
 	vx += ax * dt;
 
