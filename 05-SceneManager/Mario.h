@@ -124,7 +124,7 @@
 
 
 #define MARIO_UNTOUCHABLE_TIME 2500
-#define MARIO_KICKING_TIME 500
+#define MARIO_KICKING_TIME 100
 
 class CMario : public CGameObject
 {

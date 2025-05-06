@@ -22,6 +22,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 
 	if (isKicking && GetTickCount64() - kick_start > MARIO_KICKING_TIME) {
 		state = MARIO_STATE_IDLE;
+		isKicking = false;
 		DebugOut(L">>> Check kicking");
 	}
 
@@ -243,17 +244,14 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 		if (redKoopa->GetState() == KOOPA_STATE_WALKING_LEFT || redKoopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 		{	
 			redKoopa->SetState(KOOPA_STATE_SHELL);
-			DebugOut(L">>> Check turn into shell");
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
 		else if (redKoopa->GetState() == KOOPA_STATE_SHELL) {
 			if (e->nx < 0) {
 				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_RIGHT);
-				DebugOut(L">>> Check turn shell moving right");
 			}
 			else {
 				redKoopa->SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
-				DebugOut(L">>> Check turn into shell  moving left");
 			}
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
@@ -578,7 +576,6 @@ void CMario::SetState(int state)
 		if (isSitting) break;
 		isKicking = true;
 		kick_start = GetTickCount64();
-		DebugOut(L">>> Kicking >>> \n");
 		break;
 
 	case MARIO_STATE_DIE:

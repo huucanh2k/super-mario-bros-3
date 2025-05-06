@@ -170,6 +170,7 @@ else {
 			SetState(KOOPA_STATE_SHELL_FAST_MOVING_LEFT);
 			DebugOut(L">>> Check turn into shell moving left >>> \n");
 		}
+		mario->SetState(MARIO_STATE_IS_KICKING);
 	}
 }
 

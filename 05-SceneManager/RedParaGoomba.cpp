@@ -94,8 +94,6 @@ void CRedParaGoomba::OnCollisionWithPlatform(LPCOLLISIONEVENT e) {
 
 void CRedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-
-
 	vy += ay * dt;
 	vx += ax * dt;
 
@@ -105,7 +103,7 @@ void CRedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		return;
 	}
 
-	if (isOnPlatform) {
+	if (isWinged && isOnPlatform) {
 		if (state == RED_PARA_GOOMBA_STATE_WALKING && GetTickCount64() - walking_start > RED_PARA_GOOMBA_WALKING_TIMEOUT) {
 			if (hopCount < 2) {
 				SetState(RED_PARA_GOOMBA_STATE_HOPPING);
