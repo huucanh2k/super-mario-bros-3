@@ -10,6 +10,9 @@ CPlantShoot::CPlantShoot(float x, float y) :CGameObject(x, y)
 
 	startY = y;
 	loacationX = x;
+	minY = startY - PLANT_BBOX_HEIGHT;
+
+	isShoot = false;
 }
 
 
@@ -65,10 +68,26 @@ void CPlantShoot::Render()
 {
 
 	CAnimations* animations = CAnimations::GetInstance();
-	int aniId = ID_ANI_PLANT_LEFT_UNDER_SHOOT;
+	int aniId = -1;
+
+
+	if (LeftORightMario() == 1 && TopOrBottomYMario() == -1)
+		if (!isShoot) aniId = ID_ANI_PLANT_LEFT_UNDER_NOT_SHOOT;
+		else {
+			aniId = ID_ANI_PLANT_LEFT_UNDER_SHOOT;
+		}
+	else if (LeftORightMario() == 1 && TopOrBottomYMario() == 1)
+		if (!isShoot) aniId = ID_ANI_PLANT_LEFT_TOP_NOT_SHOOT;
+		else aniId = ID_ANI_PLANT_LEFT_TOP_SHOOT;
+	else if (LeftORightMario() == -1 && TopOrBottomYMario() == 1)
+		if (!isShoot) aniId = ID_ANI_PLANT_RIGHT_TOP_NOT_SHOOT;
+		else aniId = ID_ANI_PLANT_RIGHT_TOP_SHOOT;
+	else {
+		if (!isShoot) aniId = ID_ANI_PLANT_RIGHT_UNDER_NOT_SHOOT;
+		else aniId = ID_ANI_PLANT_RIGHT_UNDER_SHOOT;
+	}
 
 	animations->Get(aniId)->Render(x, y);
-	//RenderBoundingBox();
 }
 
 void CPlantShoot::SetState(int state)
