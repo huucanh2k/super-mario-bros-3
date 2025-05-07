@@ -86,7 +86,7 @@ plant.txt
 9	367	393
 
 #Plant
-10	367	360
+10	367	385
 
 
 #Portal 

@@ -28,6 +28,69 @@ void CPlantShoot::GetBoundingBox(float& l, float& t, float& r, float& b)
 
 void CPlantShoot::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
+	if (isUp) {
+		if (y > minY)
+		{
+			vy = -SPEED;
+		}
+		else {
+
+			vy = 0;
+			y = minY;
+			isShoot = true;
+
+			if (GetTickCount64() - time_out_pipe > TIME_OUT_PIPE)
+			{
+
+
+				//DebugOut(L">>> CAY LAN XUONG lan thu n >>> \n");
+
+				SetState(PLANT_STATE_DOWN);
+
+			}
+		}
+	}
+	else if (isDown) {
+
+		if (y < startY)
+		{
+			vy = SPEED;
+		}
+		else {
+			//IsActive = false;
+			vy = 0;
+			y = startY;
+			isShoot = true;
+			if (GetTickCount64() - time_down_pipe > TIME_IN_PIPE) {
+
+				if ((distanceMario_PlantEnemies() > DISTANCE_MIN_MARIO_PLANT))
+				{
+
+
+					SetState(PLANT_STATE_UP);
+				}
+				else {
+
+					SetState(PLANT_STATE_NOT_TOUCH);
+				}
+			}
+		}
+	}
+	else {
+		if (y < startY)
+		{
+			vy = SPEED;
+		}
+		else {
+			vy = 0;
+			y = startY;
+
+			if (GetTickCount64() - time_down_pipe > TIME_IN_PIPE_START) {
+
+				SetState(PLANT_STATE_UP);
+			}
+		}
+	}
 	CGameObject::Update(dt, coObjects);
 	CCollision::GetInstance()->Process(this, dt, coObjects);
 }
@@ -92,4 +155,34 @@ void CPlantShoot::Render()
 
 void CPlantShoot::SetState(int state)
 {
+	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
+	switch (state)
+	{
+	case PLANT_STATE_UP:
+		if (distanceMario_PlantEnemies() < DISTANCE_PLANT_ENEMIS_MAYBE_SHOW_UP)
+		{
+			isUp = true;
+
+		}
+		else
+		{
+			isUp = false;
+		}
+		isDown = false;
+		isShoot = false;
+		time_out_pipe = GetTickCount64();
+		time_down_pipe = 0;
+		break;
+
+	case PLANT_STATE_DOWN:
+
+
+		isShoot = false;
+		isUp = false;
+		isDown = true;
+		time_down_pipe = GetTickCount64();
+		time_out_pipe = 0;
+		break;
+	}
+	CGameObject::SetState(state);
 }
