@@ -11,6 +11,10 @@
 #include "Platform.h"
 #include "Map.h"
 #include "Box.h"
+#include "BrickQuestion.h"
+#include "Pipeline.h"
+#include "PlantShoot.h"
+
 #include "RedParaGoomba.h"
 
 #include "SampleKeyEventHandler.h"
@@ -149,6 +153,29 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_RED_PARA_GOOMBA: obj = new CRedParaGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
+	case OBJECT_TYPE_BRICK_QUESTION_COIN: obj = new CBrickQuestion(x, y, BRICK_QUESTION_COIN); break;
+	case OBJECT_TYPE_BRICK_QUESTION_NOT_COIN: obj = new CBrickQuestion(x, y, BRICK_QUESTION_NOT_COIN); break;
+	case OBJECT_TYPE_PIPELINE: obj = new CPipeline(x, y, MODEL_L_PIPE); break;
+	case OBJECT_TYPE_PLANT_SHOOT: obj = new CPlantShoot(x, y); break;
+
+	case OBJECT_TYPE_BOX:
+	{
+
+		float cell_width = (float)atof(tokens[3].c_str());
+		float cell_height = (float)atof(tokens[4].c_str());
+		int length = atoi(tokens[5].c_str());
+		int sprite_begin = atoi(tokens[6].c_str());
+		int sprite_middle = atoi(tokens[7].c_str());
+		int sprite_end = atoi(tokens[8].c_str());
+
+		obj = new CBox(
+			x, y,
+			cell_width, cell_height, length,
+			sprite_begin, sprite_middle, sprite_end
+		);
+
+		break;
+	}
 
 	case OBJECT_TYPE_PLATFORM:
 	{
@@ -264,16 +291,16 @@ void CPlayScene::Load()
 		if (line == "[ASSETS]") { section = SCENE_SECTION_ASSETS; continue; };
 		if (line == "[OBJECTS]") { section = SCENE_SECTION_OBJECTS; continue; };
 		if (line == "[MAP]") { section = SCENE_SECTION_MAP; continue; };
-		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }
+		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }	
 
 		//
 		// data section
 		//
 		switch (section)
-		{
-		case SCENE_SECTION_ASSETS: _ParseSection_ASSETS(line); break;
-		case SCENE_SECTION_OBJECTS: _ParseSection_OBJECTS(line); break;
-		case SCENE_SECTION_MAP: _ParseSection_MAP(line); break;
+		{ 
+			case SCENE_SECTION_ASSETS: _ParseSection_ASSETS(line); break;
+			case SCENE_SECTION_OBJECTS: _ParseSection_OBJECTS(line); break;
+			case SCENE_SECTION_MAP: _ParseSection_MAP(line); break;
 
 		}
 	}
@@ -466,4 +493,9 @@ void CPlayScene::PurgeDeletedObjects()
 	objects.erase(
 		std::remove_if(objects.begin(), objects.end(), CPlayScene::IsGameObjectDeleted),
 		objects.end());
+}
+
+void CPlayScene::AddObject(LPGAMEOBJECT object)
+{
+	objects.insert(objects.begin() + 1, object);
 }

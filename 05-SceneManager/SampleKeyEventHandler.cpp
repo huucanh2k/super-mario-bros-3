@@ -28,6 +28,8 @@ void CSampleKeyHandler::OnKeyDown(int KeyCode)
 	case DIK_0:
 		mario->SetState(MARIO_STATE_DIE);
 		break;
+	case DIK_3:
+		mario->SetLevel(MARIO_LEVEL_RACOON);
 	case DIK_A:
 		//Set state to hold when press A
 		if (mario->GetIsHolding() == false)

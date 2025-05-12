@@ -18,26 +18,28 @@ class CGameObject
 {
 protected:
 
-	float x; 
+	float x;
 	float y;
+
 
 	float vx;
 	float vy;
 
-	int nx;	 
+	int nx;
 
 	int state;
 
-	bool isDeleted; 
+	bool isDeleted;
+	DWORD dt;
 
-public: 
+public:
 	void SetPosition(float x, float y) { this->x = x, this->y = y; }
 	void SetSpeed(float vx, float vy) { this->vx = vx, this->vy = vy; }
-	void GetPosition(float &x, float &y) { x = this->x; y = this->y; }
-	void GetSpeed(float &vx, float &vy) { vx = this->vx; vy = this->vy; }
-
+	void GetPosition(float& x, float& y) { x = this->x; y = this->y; }
+	void GetSpeed(float& vx, float& vy) { vx = this->vx; vy = this->vy; }
+	virtual int IsDirectionColliable(float nx, float ny) { return 1; }
 	int GetState() { return this->state; }
-	virtual void Delete() { isDeleted = true;  }
+	virtual void Delete() { isDeleted = true; }
 	bool IsDeleted() { return isDeleted; }
 
 	float GetX() {
@@ -66,10 +68,11 @@ public:
 	CGameObject(float x, float y) :CGameObject() { this->x = x; this->y = y; }
 
 
-	virtual void GetBoundingBox(float &left, float &top, float &right, float &bottom) = 0;
-	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects = NULL) {};
+	virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom) = 0;
+	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects = NULL) {}
 	virtual void Render() = 0;
 	virtual void SetState(int state) { this->state = state; }
+	virtual bool IsPlatform() { return 0; }
 
 	//
 	// Collision ON or OFF ? This can change depending on object's state. For example: die
@@ -81,14 +84,25 @@ public:
 
 	// When collision with an object has been detected (triggered by CCollision::Process)
 	virtual void OnCollisionWith(LPCOLLISIONEVENT e) {};
-	
+
 	// Is this object blocking other object? If YES, collision framework will automatically push the other object
 	virtual int IsBlocking() { return 1; }
+	virtual int IsPlayer() { return 0; }
 
-	// Does this object collide with other object at certain direction ( like ColorBox )
-	virtual int IsDirectionColliable(float nx, float ny) { return 1; }
+	float GetX() { return x; }
+	float GetY() { return y; }
+	float GetVx() { return vx; }
+	float GetVy() { return vy; }
+	int GetNx() { return this->nx; }
+	void SetY(float f) { y = f; }
+	void SetX(float f) { x = f; }
+	void SetVy(float f) { vy = f; }
+	void SetVx(float f) { vx = f; }
+	void SetIsDeleted(bool b) {
+		isDeleted = b;
+	}
 
 	~CGameObject();
 
-	static bool IsDeleted(const LPGAMEOBJECT &o) { return o->isDeleted; }
+	static bool IsDeleted(const LPGAMEOBJECT& o) { return o->isDeleted; }
 };
