@@ -76,6 +76,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Koopa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -89,6 +91,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PlantShoot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -186,6 +190,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PlantShoot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -89,11 +89,6 @@ public:
 	virtual int IsBlocking() { return 1; }
 	virtual int IsPlayer() { return 0; }
 
-	float GetX() { return x; }
-	float GetY() { return y; }
-	float GetVx() { return vx; }
-	float GetVy() { return vy; }
-	int GetNx() { return this->nx; }
 	void SetY(float f) { y = f; }
 	void SetX(float f) { x = f; }
 	void SetVy(float f) { vy = f; }

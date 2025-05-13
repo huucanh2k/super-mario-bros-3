@@ -10,6 +10,8 @@ pipeline.txt
 plant.txt
 koopa.txt
 para_goomba.txt
+goomba.txt
+
 
 map.txt
 #
@@ -52,14 +54,15 @@ map.txt
 
 0	50	10
 
-#KOOPA
-3	600	200
+#PARA GOOMBA
+15	1100	240
+
+#GOOMBA
+2	1000	240
+2	900	240
 
 #RED KOOPA
-7	500	200
-
-#RED PARA GOOMBA
-10	500	200	
+12	600	240
 
 #COIN
 4	100	120
