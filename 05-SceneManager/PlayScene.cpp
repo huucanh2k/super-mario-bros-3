@@ -14,6 +14,7 @@
 #include "BrickQuestion.h"
 #include "Pipeline.h"
 #include "PlantShoot.h"
+#include "SuperLeaf.h"
 
 #include "RedParaGoomba.h"
 
@@ -153,8 +154,10 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_RED_PARA_GOOMBA: obj = new CRedParaGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
+	case OBJECT_TYPE_SUPER_LEAF: obj = new CSuperLeaf(x, y); break;
 	case OBJECT_TYPE_BRICK_QUESTION_COIN: obj = new CBrickQuestion(x, y, BRICK_QUESTION_COIN); break;
 	case OBJECT_TYPE_BRICK_QUESTION_NOT_COIN: obj = new CBrickQuestion(x, y, BRICK_QUESTION_NOT_COIN); break;
+	case OBJECT_TYPE_BRICK_QUESTION_SUPER_LEAF: obj = new CBrickQuestion(x, y, BRICK_QUESTION_LEAF); break;
 	case OBJECT_TYPE_PIPELINE: obj = new CPipeline(x, y, MODEL_L_PIPE); break;
 	case OBJECT_TYPE_PLANT_SHOOT: obj = new CPlantShoot(x, y); break;
 

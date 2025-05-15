@@ -11,6 +11,7 @@ plant.txt
 koopa.txt
 para_goomba.txt
 goomba.txt
+super_leaf.txt
 
 
 map.txt
@@ -83,6 +84,9 @@ map.txt
 4	140	80
 4	160	80
 4	180	80
+
+#SUPER LEAF
+11	190	300
 
 
 #BRICK_QUESTION
