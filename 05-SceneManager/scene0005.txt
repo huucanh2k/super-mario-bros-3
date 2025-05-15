@@ -7,12 +7,13 @@ brick.txt
 map.txt
 brick-question.txt
 pipeline.txt
+plant.txt
 #
 [MAP]
 60	1408	216
 [OBJECTS]
 # type	x	y	extra_settings per object type
-# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9
+# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10
 # See OBJECT_TYPE constants in AssetIDs.h
 
 # MARIO
@@ -83,6 +84,9 @@ pipeline.txt
 
 #Pipeline
 9	367	393
+
+#Plant
+10	367	385
 
 
 #Portal 
