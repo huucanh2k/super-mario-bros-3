@@ -110,7 +110,7 @@ void CMario::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e)
 				CCoin* coinSummon = new CCoin(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN));
 				scene->AddObject(coinSummon);
 				coinSummon->SetState(COIN_SUMMON_STATE);
-				coin++;
+				coin += 50;
 			}
 		}
 	}
@@ -128,6 +128,7 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 		{
 			goomba->SetState(GOOMBA_STATE_DIE);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			coin += 100;
 		}
 	}
 	else // hit by Goomba
@@ -167,6 +168,7 @@ void CMario::OnCollisionWithRedParaGoomba(LPCOLLISIONEVENT e)
 			}
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
+		coin += 100;
 	}
 	else 
 	{
@@ -211,7 +213,9 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
 			koopa->SetState(KOOPA_STATE_SHELL);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
-		
+
+		coin += 100;
+		 
 	}
 	else if (e->ny > 0)
 	{
@@ -288,6 +292,8 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 			redKoopa->SetState(KOOPA_STATE_SHELL);
 			vy = -MARIO_JUMP_DEFLECT_SPEED;
 		}
+
+		coin += 100;
 	}
 	else if (e->ny > 0)
 	{
@@ -317,7 +323,7 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {
 	e->obj->Delete();
-	coin++;
+	coin += 50;
 }
 
 void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)

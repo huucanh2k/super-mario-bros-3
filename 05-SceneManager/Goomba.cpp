@@ -59,6 +59,10 @@ void CGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 
 void CGoomba::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 {
+	if (!CGameObject::IsInScreen()) {
+		return;
+	}
+
 	vy += ay * dt;
 	vx += ax * dt;
 

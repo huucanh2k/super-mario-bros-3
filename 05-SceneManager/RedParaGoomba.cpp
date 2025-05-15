@@ -94,6 +94,11 @@ void CRedParaGoomba::OnCollisionWithPlatform(LPCOLLISIONEVENT e) {
 
 void CRedParaGoomba::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
+	if (!CGameObject::IsInScreen())
+	{
+		return;
+	}
+
 	vy += ay * dt;
 	vx += ax * dt;
 
