@@ -13,6 +13,7 @@ para_goomba.txt
 goomba.txt
 super_leaf.txt
 bulletplant.txt
+mushroom.txt
 
 
 map.txt

@@ -12,6 +12,8 @@
 #include "Portal.h"
 #include "BrickQuestion.h"
 #include "PlayScene.h"
+#include "MushRoom.h"
+#include "SuperLeaf.h"
 
 #include "Collision.h"
 
@@ -91,6 +93,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithPortal(e);
 	else if (dynamic_cast<CBrickQuestion*>(e->obj))
 		OnCollisionWithBrickQuestion(e);
+	else if (dynamic_cast<CMushRoom*>(e->obj))
+		OnCollisionWithMushRoom(e);
+	else if (dynamic_cast<CSuperLeaf*>(e->obj))
+		OnCollisionWithSuperLeaf(e);
 	
 }
 
@@ -111,6 +117,17 @@ void CMario::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e)
 				scene->AddObject(coinSummon);
 				coinSummon->SetState(COIN_SUMMON_STATE);
 				coin += 50;
+			}
+			else if (brick_question->GetModel() == BRICK_QUESTION_NOT_COIN) {
+				if (level == MARIO_LEVEL_SMALL) {
+					CMushRoom* mushroom = new CMushRoom(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN), MODE_RED);
+					scene->AddObject(mushroom);
+				}
+				else if (level == MARIO_LEVEL_BIG) {
+					CSuperLeaf* leaf = new CSuperLeaf(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN));
+					scene->AddObject(leaf);
+					leaf->SetState(LEAF_SUMMON_STATE);
+				}
 			}
 		}
 	}
@@ -318,6 +335,28 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 		}
 	}
 	
+}
+
+void CMario::OnCollisionWithMushRoom(LPCOLLISIONEVENT e)
+{
+	CMushRoom* mush_room = (CMushRoom*)e->obj;
+
+
+	if (level == MARIO_LEVEL_SMALL) {
+		SetLevel(MARIO_LEVEL_BIG);
+	}
+	e->obj->Delete();
+}
+
+void CMario::OnCollisionWithSuperLeaf(LPCOLLISIONEVENT e)
+{
+	CSuperLeaf* superLeaf = (CSuperLeaf*)e->obj;
+
+
+	if (level == MARIO_LEVEL_BIG) {
+		SetLevel(MARIO_LEVEL_RACOON);
+	}
+	e->obj->Delete();
 }
 
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
