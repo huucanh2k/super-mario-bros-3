@@ -43,6 +43,7 @@ protected:
 	bool isShoot;
 	float minY;
 	bool isUp, isDown;
+	bool isActive;
 
 	ULONGLONG time_out_pipe;
 	ULONGLONG time_wait_plant_return;
@@ -82,4 +83,7 @@ public:
 		}
 	}
 
+	bool checkIsActive() {
+		return isActive;
+	}
 };
