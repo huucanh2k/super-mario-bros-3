@@ -34,6 +34,7 @@ protected:
 	virtual void CreateCheckFall();
 
 	virtual void CheckFall();
+	virtual void OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e);	
 
 public:
 	CRedKoopa(float x, float y);

@@ -22,7 +22,8 @@ map.txt
 60	1408	216
 [OBJECTS]
 # type	x	y	extra_settings per object type
-# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10, Leaf = 11
+
+# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10, Leaf = 11, BQ_Leaf 16
 # See OBJECT_TYPE constants in AssetIDs.h
 
 # MARIO
@@ -102,6 +103,9 @@ map.txt
 #BQ_COIN
 7	423	312
 7	712	360
+
+#BQ_SUPERLEAF
+16	700	390
 
 
 #Plant

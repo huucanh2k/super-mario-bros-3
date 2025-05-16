@@ -32,8 +32,6 @@ void CSuperLeaf::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
 	//vy += ay * dt;
 	//vx += ax * dt;
 
-
-	//DebugOut(L"[VANTOC] %f\n", vy);
 	if (y < limitY) {
 
 		y = limitY;
