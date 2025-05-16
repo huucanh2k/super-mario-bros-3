@@ -27,9 +27,11 @@
     <ClCompile Include="SampleKeyEventHandler.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Sprites.cpp" />
+    <ClCompile Include="SuperLeaf.cpp" />
     <ClCompile Include="Textures.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="SuperLeaf.cpp" />
+    <ClCompile Include="BulletPlant.cpp" />
+    <ClCompile Include="MushRoom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />
@@ -60,10 +62,12 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="Sprites.h" />
+    <ClInclude Include="SuperLeaf.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Textures.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="SuperLeaf.h" />
+    <ClInclude Include="BulletPlant.h" />
+    <ClInclude Include="MushRoom.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

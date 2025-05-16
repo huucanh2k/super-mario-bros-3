@@ -12,6 +12,8 @@ koopa.txt
 para_goomba.txt
 goomba.txt
 super_leaf.txt
+bulletplant.txt
+mushroom.txt
 
 
 map.txt
@@ -20,7 +22,8 @@ map.txt
 60	1408	216
 [OBJECTS]
 # type	x	y	extra_settings per object type
-# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10, BRICK_QUESTION_SUPER_LEAF 16
+
+# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10, Leaf = 11, BQ_Leaf 16
 # See OBJECT_TYPE constants in AssetIDs.h
 
 # MARIO
@@ -85,8 +88,6 @@ map.txt
 4	160	80
 4	180	80
 
-#SUPER LEAF
-11	190	300
 
 
 #BRICK_QUESTION
@@ -106,11 +107,13 @@ map.txt
 #BQ_SUPERLEAF
 16	700	390
 
-#Pipeline
-9	367	393
 
 #Plant
 10	367	385
+
+#Pipeline
+9	367	393
+
 
 
 #Portal 

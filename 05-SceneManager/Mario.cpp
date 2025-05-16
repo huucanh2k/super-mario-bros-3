@@ -12,6 +12,10 @@
 #include "Portal.h"
 #include "BrickQuestion.h"
 #include "PlayScene.h"
+#include "MushRoom.h"
+#include "SuperLeaf.h"
+#include "PlantShoot.h"
+#include "BulletPlant.h"
 
 #include "Collision.h"
 
@@ -91,7 +95,15 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithPortal(e);
 	else if (dynamic_cast<CBrickQuestion*>(e->obj))
 		OnCollisionWithBrickQuestion(e);
-	
+	else if (dynamic_cast<CMushRoom*>(e->obj))
+		OnCollisionWithMushRoom(e);
+	else if (dynamic_cast<CSuperLeaf*>(e->obj))
+		OnCollisionWithSuperLeaf(e);
+	else if (dynamic_cast<CPlantShoot*>(e->obj))
+		OnCollisionWithPlantShoot(e);
+	else if (dynamic_cast<CBulletPlant*>(e->obj))
+		OnCollisionWithFireBulletPlant(e);
+
 }
 
 void CMario::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e)
@@ -111,6 +123,17 @@ void CMario::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e)
 				scene->AddObject(coinSummon);
 				coinSummon->SetState(COIN_SUMMON_STATE);
 				coin += 50;
+			}
+			else if (brick_question->GetModel() == BRICK_QUESTION_NOT_COIN) {
+				if (level == MARIO_LEVEL_SMALL) {
+					CMushRoom* mushroom = new CMushRoom(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN), MODE_RED);
+					scene->AddObject(mushroom);
+				}
+				else if (level == MARIO_LEVEL_BIG) {
+					CSuperLeaf* leaf = new CSuperLeaf(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN));
+					scene->AddObject(leaf);
+					leaf->SetState(LEAF_SUMMON_STATE);
+				}
 			}
 		}
 	}
@@ -320,6 +343,28 @@ void CMario::OnCollisionWithRedKoopa(LPCOLLISIONEVENT e) {
 	
 }
 
+void CMario::OnCollisionWithMushRoom(LPCOLLISIONEVENT e)
+{
+	CMushRoom* mush_room = (CMushRoom*)e->obj;
+
+
+	if (level == MARIO_LEVEL_SMALL) {
+		SetLevel(MARIO_LEVEL_BIG);
+	}
+	e->obj->Delete();
+}
+
+void CMario::OnCollisionWithSuperLeaf(LPCOLLISIONEVENT e)
+{
+	CSuperLeaf* superLeaf = (CSuperLeaf*)e->obj;
+
+
+	if (level == MARIO_LEVEL_BIG) {
+		SetLevel(MARIO_LEVEL_RACOON);
+	}
+	e->obj->Delete();
+}
+
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {
 	e->obj->Delete();
@@ -330,6 +375,69 @@ void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 {
 	CPortal* p = (CPortal*)e->obj;
 	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
+}
+
+void CMario::OnCollisionWithPlantShoot(LPCOLLISIONEVENT e)
+{
+	CPlantShoot* pshootred = dynamic_cast<CPlantShoot*>(e->obj);
+
+
+
+		if (untouchable == 0) {
+			if (pshootred->GetState() != PLANT_STATE_NOT_TOUCH) {
+				if (level > MARIO_LEVEL_SMALL)
+				{
+
+					if (level > MARIO_LEVEL_BIG)
+					{
+						level = MARIO_LEVEL_BIG;
+						StartUntouchable();
+					}
+					else
+					{
+						level = MARIO_LEVEL_SMALL;
+
+
+						StartUntouchable();
+					}
+				}
+				else
+				{
+					DebugOut(L">>> Mario DIE by Plant Enemies >>> \n");
+					SetState(MARIO_STATE_DIE);
+					//isDeleted = true; sai
+				}
+			}
+		}
+}
+
+void CMario::OnCollisionWithFireBulletPlant(LPCOLLISIONEVENT e)
+{
+	CBulletPlant* fire_bullet = dynamic_cast<CBulletPlant*>(e->obj);
+	if (untouchable == 0) {
+		if (level > MARIO_LEVEL_SMALL)
+		{
+			if (level > MARIO_LEVEL_BIG)
+			{
+				level = MARIO_LEVEL_BIG;
+				StartUntouchable();
+			}
+			else
+			{
+				level = MARIO_LEVEL_SMALL;
+
+
+				StartUntouchable();
+			}
+		}
+		else
+		{
+			DebugOut(L">>> Mario DIE by Fire_Bullet >>> \n");
+			SetState(MARIO_STATE_DIE);
+		}
+		e->obj->Delete();
+	}
+
 }
 
 //
