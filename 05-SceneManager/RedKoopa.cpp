@@ -5,6 +5,8 @@
 #include "AssetIDs.h"
 #include "Box.h"
 #include "Mario.h"
+#include "BrickQuestion.h"
+#include "SuperLeaf.h"
  
 CRedKoopa::CRedKoopa(float x, float y) : CGameObject(x, y)
 {
@@ -88,6 +90,10 @@ void CRedKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 		}
 	};
 
+	if ( dynamic_cast<CBrickQuestion*>(e->obj) && (state == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || state == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) ) {
+		OnCollisionWithBrickQuestion(e);
+	}
+
 	if (e->ny != 0)
 	{
 		vy = 0;
@@ -112,6 +118,28 @@ void CRedKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 		}
 	}
 }
+
+void CRedKoopa::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e) {
+	CBrickQuestion* brick_question = dynamic_cast<CBrickQuestion*>(e->obj);
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+	int x = brick_question->GetX();
+	int y = brick_question->GetY();
+
+	// jump on top >> kill Goomba and deflect a bit 
+	if (e->nx != 0) {
+		if (!brick_question->GetIsEmpty()) {
+			brick_question->SetState(BRICK_QUESTION_STATE_UP);
+			brick_question->SetIsUnbox(true);
+			if (brick_question->GetModel() == BRICK_QUESTION_LEAF) {
+				CSuperLeaf* leafSummon = new CSuperLeaf(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN + 30));
+				scene->AddObject(leafSummon);
+				leafSummon->SetState(SUPER_LEAF_SUMMON_STATE);
+			}
+		}
+	}
+}
+
+
 
 void CRedKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
