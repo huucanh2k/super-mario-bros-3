@@ -14,6 +14,8 @@
 #include "PlayScene.h"
 #include "MushRoom.h"
 #include "SuperLeaf.h"
+#include "PlantShoot.h"
+#include "BulletPlant.h"
 
 #include "Collision.h"
 
@@ -97,7 +99,11 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		OnCollisionWithMushRoom(e);
 	else if (dynamic_cast<CSuperLeaf*>(e->obj))
 		OnCollisionWithSuperLeaf(e);
-	
+	else if (dynamic_cast<CPlantShoot*>(e->obj))
+		OnCollisionWithPlantShoot(e);
+	else if (dynamic_cast<CBulletPlant*>(e->obj))
+		OnCollisionWithFireBulletPlant(e);
+
 }
 
 void CMario::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e)
@@ -369,6 +375,69 @@ void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 {
 	CPortal* p = (CPortal*)e->obj;
 	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
+}
+
+void CMario::OnCollisionWithPlantShoot(LPCOLLISIONEVENT e)
+{
+	CPlantShoot* pshootred = dynamic_cast<CPlantShoot*>(e->obj);
+
+
+
+		if (untouchable == 0) {
+			if (pshootred->GetState() != PLANT_STATE_NOT_TOUCH) {
+				if (level > MARIO_LEVEL_SMALL)
+				{
+
+					if (level > MARIO_LEVEL_BIG)
+					{
+						level = MARIO_LEVEL_BIG;
+						StartUntouchable();
+					}
+					else
+					{
+						level = MARIO_LEVEL_SMALL;
+
+
+						StartUntouchable();
+					}
+				}
+				else
+				{
+					DebugOut(L">>> Mario DIE by Plant Enemies >>> \n");
+					SetState(MARIO_STATE_DIE);
+					//isDeleted = true; sai
+				}
+			}
+		}
+}
+
+void CMario::OnCollisionWithFireBulletPlant(LPCOLLISIONEVENT e)
+{
+	CBulletPlant* fire_bullet = dynamic_cast<CBulletPlant*>(e->obj);
+	if (untouchable == 0) {
+		if (level > MARIO_LEVEL_SMALL)
+		{
+			if (level > MARIO_LEVEL_BIG)
+			{
+				level = MARIO_LEVEL_BIG;
+				StartUntouchable();
+			}
+			else
+			{
+				level = MARIO_LEVEL_SMALL;
+
+
+				StartUntouchable();
+			}
+		}
+		else
+		{
+			DebugOut(L">>> Mario DIE by Fire_Bullet >>> \n");
+			SetState(MARIO_STATE_DIE);
+		}
+		e->obj->Delete();
+	}
+
 }
 
 //

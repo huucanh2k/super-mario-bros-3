@@ -13,17 +13,18 @@ CPlantShoot::CPlantShoot(float x, float y) :CGameObject(x, y)
 	minY = startY - PLANT_BBOX_HEIGHT;
 
 	isShoot = false;
+	isActive = true;
 }
 
 
 
 void CPlantShoot::GetBoundingBox(float& l, float& t, float& r, float& b)
 {
-
-		l = x - PLANT_BBOX_WIDTH / 2;
-		t = y - PLANT_BBOX_HEIGHT / 3;
-		r = l + PLANT_BBOX_WIDTH;
-		b = t + PLANT_BBOX_HEIGHT;
+	if (!isActive) return;
+	l = x - PLANT_BBOX_WIDTH / 2;
+	t = y - PLANT_BBOX_HEIGHT / 3;
+	r = l + PLANT_BBOX_WIDTH;
+	b = t + PLANT_BBOX_HEIGHT;
 }
 
 void CPlantShoot::CreateBullet() {
@@ -38,6 +39,7 @@ void CPlantShoot::CreateBullet() {
 
 void CPlantShoot::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
+	if (isActive && GetTickCount64() - time_wait_plant_return > 2000) {
 	if (isUp) {
 		if (y > minY)
 		{
@@ -106,6 +108,11 @@ void CPlantShoot::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 			}
 		}
 	}
+	}
+	else {
+		return;
+	}
+
 	CGameObject::Update(dt, coObjects);
 	CCollision::GetInstance()->Process(this, dt, coObjects);
 }
