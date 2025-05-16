@@ -163,6 +163,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Mario.cpp" />
+    <ClCompile Include="MushRoom.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PlantShoot.cpp" />
     <ClCompile Include="Platform.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="KeyEventHandler.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Mario.h" />
+    <ClInclude Include="MushRoom.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="PlantShoot.h" />
     <ClInclude Include="Platform.h" />
