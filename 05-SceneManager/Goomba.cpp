@@ -1,5 +1,6 @@
 #include "Goomba.h"
 #include "Koopa.h"
+#include "RedKoopa.h"
 
 CGoomba::CGoomba(float x, float y):CGameObject(x, y)
 {
@@ -36,7 +37,7 @@ void CGoomba::OnNoCollision(DWORD dt)
 void CGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 {
 	if (!e->obj->IsBlocking()) {
-		if (dynamic_cast<CKoopa*>(e->obj)) {
+		if (dynamic_cast<CRedKoopa*>(e->obj)) {
 			if (e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
 				SetState(GOOMBA_STATE_DIE);
 				return;
