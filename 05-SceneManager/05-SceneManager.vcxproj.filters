@@ -31,6 +31,7 @@
     <ClCompile Include="Textures.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="BulletPlant.cpp" />
+    <ClCompile Include="MushRoom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />
@@ -66,6 +67,7 @@
     <ClInclude Include="Textures.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="BulletPlant.h" />
+    <ClInclude Include="MushRoom.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
