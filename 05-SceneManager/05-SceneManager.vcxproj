@@ -151,6 +151,7 @@
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="Brick.cpp" />
     <ClCompile Include="BrickQuestion.cpp" />
+    <ClCompile Include="BulletPlant.cpp" />
     <ClCompile Include="CheckFall.cpp" />
     <ClCompile Include="Coin.cpp" />
     <ClCompile Include="Collision.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="Brick.h" />
     <ClInclude Include="BrickQuestion.h" />
+    <ClInclude Include="BulletPlant.h" />
     <ClInclude Include="CheckFall.h" />
     <ClInclude Include="Coin.h" />
     <ClInclude Include="Collision.h" />

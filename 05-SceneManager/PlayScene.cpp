@@ -381,23 +381,9 @@ CGameObject* CPlayScene::CreateObjectAndReturn(int id, float x, float y, float v
 		obj = new CCheckFall(x, y, 2); 
 		break;
 
-	/*case OBJECT_TYPE_FIRE_BULLET_OF_PLANT: obj = new CbulletPlant(x, y, 0, 0); break;
-
-	case OBJECT_TYPE_GOOMBA_UNDER_KOOPA: obj = new CGoomba(x, y, GOOMBA_BASIC); break;
-
-	case OBJECT_TYPE_WHIPPING: obj = new CTailWhipping(x, y); break;
-
-	case OBJECT_TYPE_FRAG_GLASS_BRICK: obj = new CFragGlass(x, y, 0, 0); break;
-
-	case OBJECT_TYPE_FRAG_GLASS_BRICK_2: obj = new CFragGlass(x, y, 0, 0); break;*/
-
-		//case OBJECT_TYPE_NEW_RED_KOOPA: obj = new CRed_Koopa(x, y, 2); break;
-
-		//case OBJECT_TYPE_RED_KOOPA_WALKING: obj = new CRed_Koopa(x, y, 1); break;
-
-		//case OBJECT_TYPE_BUTTON_P: obj = new CButtonP(x, y); break;
-
-		//case OBJECT_TYPE_GLASS_BRICK_CHANGETO_COIN: obj = new CglassBrick(x, y, GLASS_BRICK_MODEL_NORMAL); break;
+	case OBJECT_TYPE_FIRE_BULLET_OF_PLANT:
+		obj = new CBulletPlant(x, y, 0 ,0);
+		break;
 
 
 	default:

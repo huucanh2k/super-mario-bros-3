@@ -26,6 +26,16 @@ void CPlantShoot::GetBoundingBox(float& l, float& t, float& r, float& b)
 		b = t + PLANT_BBOX_HEIGHT;
 }
 
+void CPlantShoot::CreateBullet() {
+
+	CPlayScene* scene = (CPlayScene*)CGame::GetInstance()->GetCurrentScene();
+
+	CGameObject* bullet = scene->CreateObjectAndReturn(OBJECT_TYPE_FIRE_BULLET_OF_PLANT, x, y - 4, BULLET_SPEED_X, BULLET_SPEED_Y);
+	create_bullet(bullet);
+	DebugOut(L">>> check tao ra vien dan >>> \n");
+
+}
+
 void CPlantShoot::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
 	if (isUp) {
@@ -37,7 +47,6 @@ void CPlantShoot::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 			vy = 0;
 			y = minY;
-			isShoot = true;
 
 			if (GetTickCount64() - time_out_pipe > TIME_OUT_PIPE)
 			{
@@ -47,6 +56,12 @@ void CPlantShoot::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 				SetState(PLANT_STATE_DOWN);
 
+			}
+			else {
+					if (!isShoot) {
+					isShoot = true;
+					CreateBullet();
+				}
 			}
 		}
 	}
@@ -126,6 +141,8 @@ int CPlantShoot::TopOrBottomYMario()
 	}
 	else return -1;
 }
+
+
 
 void CPlantShoot::Render()
 {

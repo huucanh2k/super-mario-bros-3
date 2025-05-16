@@ -12,6 +12,7 @@ koopa.txt
 para_goomba.txt
 goomba.txt
 super_leaf.txt
+bulletplant.txt
 
 
 map.txt

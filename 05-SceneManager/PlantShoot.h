@@ -1,5 +1,6 @@
 #pragma once
 #include "Gameobject.h"
+#include "BulletPlant.h"
 
 
 
@@ -46,6 +47,8 @@ protected:
 	ULONGLONG time_out_pipe;
 	ULONGLONG time_wait_plant_return;
 	ULONGLONG time_down_pipe;
+	CBulletPlant* bulletPlant;
+
 
 
 	float distanceMario_PlantEnemies();
@@ -61,10 +64,22 @@ protected:
 	virtual int IsBlocking() { return 0; }
 
 	virtual void OnNoCollision(DWORD dt);
+	void CreateBullet();
 
 public:
 	CPlantShoot(float x, float y);
 
 	virtual void SetState(int state);
+
+	void create_bullet(CGameObject* obj) {
+		if (!dynamic_cast<CBulletPlant*>(obj)) return;
+		else if (!bulletPlant)
+		{
+			CBulletPlant* new_bullet = dynamic_cast<CBulletPlant*>(obj);
+			bulletPlant = new_bullet;
+			DebugOut(L">>> check tao bullet >>> \n");
+
+		}
+	}
 
 };
