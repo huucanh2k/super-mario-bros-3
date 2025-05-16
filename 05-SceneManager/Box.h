@@ -26,6 +26,9 @@ public:
 		this->spriteIdEnd = sprite_id_end;
 	}
 
+	float GetStartX() { return x; }
+	float GetEndX() { return x + length * cellWidth; }
+
 	void Render();
 	void Update(DWORD dt) {}
 	void GetBoundingBox(float& l, float& t, float& r, float& b);

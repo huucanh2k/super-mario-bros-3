@@ -42,6 +42,26 @@ public:
 	virtual void Delete() { isDeleted = true; }
 	bool IsDeleted() { return isDeleted; }
 
+	float GetX() {
+		return x;
+	}
+
+	float GetY() {
+		return y;
+	}
+
+	float GetVx() {
+		return vx;
+	}
+
+	float GetVy() {
+		return vy;
+	}
+
+	int GetNx() {
+		return nx;
+	}
+
 	void RenderBoundingBox();
 
 	CGameObject();
@@ -53,6 +73,7 @@ public:
 	virtual void Render() = 0;
 	virtual void SetState(int state) { this->state = state; }
 	virtual bool IsPlatform() { return 0; }
+	virtual bool IsInScreen();
 
 	//
 	// Collision ON or OFF ? This can change depending on object's state. For example: die
@@ -69,11 +90,6 @@ public:
 	virtual int IsBlocking() { return 1; }
 	virtual int IsPlayer() { return 0; }
 
-	float GetX() { return x; }
-	float GetY() { return y; }
-	float GetVx() { return vx; }
-	float GetVy() { return vy; }
-	int GetNx() { return this->nx; }
 	void SetY(float f) { y = f; }
 	void SetX(float f) { x = f; }
 	void SetVy(float f) { vy = f; }

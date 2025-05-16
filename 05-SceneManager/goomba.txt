@@ -1,5 +1,6 @@
 # id	left	top	right	bottom	texture_id
 [SPRITES]
+########### GOOMBA #############
 #WALK
 31001	4	13	22	30	10
 31002	24	13	42	30	10

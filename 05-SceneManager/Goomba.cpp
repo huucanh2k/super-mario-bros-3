@@ -1,4 +1,5 @@
 #include "Goomba.h"
+#include "Koopa.h"
 
 CGoomba::CGoomba(float x, float y):CGameObject(x, y)
 {
@@ -34,7 +35,16 @@ void CGoomba::OnNoCollision(DWORD dt)
 
 void CGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-	if (!e->obj->IsBlocking()) return; 
+	if (!e->obj->IsBlocking()) {
+		if (dynamic_cast<CKoopa*>(e->obj)) {
+			if (e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_LEFT || e->obj->GetState() == KOOPA_STATE_SHELL_FAST_MOVING_RIGHT) {
+				SetState(GOOMBA_STATE_DIE);
+				return;
+			}
+		}
+		return;
+	}
+
 	if (dynamic_cast<CGoomba*>(e->obj)) return; 
 
 	if (e->ny != 0 )
@@ -49,6 +59,10 @@ void CGoomba::OnCollisionWith(LPCOLLISIONEVENT e)
 
 void CGoomba::Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects)
 {
+	if (!CGameObject::IsInScreen()) {
+		return;
+	}
+
 	vy += ay * dt;
 	vx += ax * dt;
 
