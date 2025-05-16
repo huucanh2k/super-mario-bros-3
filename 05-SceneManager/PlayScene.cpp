@@ -321,8 +321,6 @@ void CPlayScene::Update(DWORD dt)
 	cx -= game->GetBackBufferWidth() / 2;
 	cy -= game->GetBackBufferHeight() / 2;
 
-	if (cx < 0) cx = 0;
-	if (cy > 410) cy = 450;
 
 	CGame::GetInstance()->SetCamPos(cx, cy /*cy*/);
 
@@ -467,5 +465,5 @@ void CPlayScene::PurgeDeletedObjects()
 
 void CPlayScene::AddObject(LPGAMEOBJECT object)
 {
-	objects.insert(objects.begin() + 1, object);
+	objects.push_back(object);
 }

@@ -103,11 +103,13 @@ map.txt
 7	423	312
 7	712	360
 
-#Pipeline
-9	367	393
 
 #Plant
 10	367	385
+
+#Pipeline
+9	367	393
+
 
 
 #Portal 
