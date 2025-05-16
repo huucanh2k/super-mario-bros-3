@@ -141,8 +141,7 @@ void CRedParaGoomba::Render()
 			aniId = ID_ANI_RED_WINGED_PARA_GOOMBA_JUMPING;
 		else if (state == RED_PARA_GOOMBA_STATE_HOPPING)
 			aniId = ID_ANI_RED_WINGED_PARA_GOOMBA_HOPPING;
-	}
-	else {
+	} else {
 		if (state == RED_PARA_GOOMBA_STATE_WALKING)
 			aniId = ID_ANI_RED_PARA_GOOMBA_WALKING;
 	}

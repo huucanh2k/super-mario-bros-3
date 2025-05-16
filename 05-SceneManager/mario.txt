@@ -132,9 +132,9 @@
 
 #KICK_small
 #LEFT_kick_small
-17001	4	78	22	97	0
+12711	4	78	22	97	0
 #RIGHT_kick_small
-17002	423	78	443	97	0
+12721	423	78	443	97	0
 
 
 ######MARIO FLY#########

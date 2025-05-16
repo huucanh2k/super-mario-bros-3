@@ -95,7 +95,7 @@ void CRedKoopa::OnCollisionWith(LPCOLLISIONEVENT e)
 
 	else if (e->nx != 0)
 	{
-		if (dynamic_cast<CBox*>(e->obj)) {
+		if (e->obj->IsBlocking()) {
 			if (state == KOOPA_STATE_WALKING_LEFT) {
 				SetState(KOOPA_STATE_WALKING_RIGHT);
 			}
