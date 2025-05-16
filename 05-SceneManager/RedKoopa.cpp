@@ -133,7 +133,7 @@ void CRedKoopa::OnCollisionWithBrickQuestion(LPCOLLISIONEVENT e) {
 			if (brick_question->GetModel() == BRICK_QUESTION_LEAF) {
 				CSuperLeaf* leafSummon = new CSuperLeaf(x, y - (BRICK_Q_BBOX_HEIGHT - ADJUST_UP_DOWN + 30));
 				scene->AddObject(leafSummon);
-				leafSummon->SetState(SUPER_LEAF_SUMMON_STATE);
+				leafSummon->SetState(LEAF_SUMMON_STATE);
 			}
 		}
 	}
