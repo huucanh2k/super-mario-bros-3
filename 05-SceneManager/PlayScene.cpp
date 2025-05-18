@@ -150,7 +150,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		break;
 	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
 	case OBJECT_TYPE_KOOPA: obj = new CKoopa(x, y); break;
-	case OBJECT_TYPE_RED_KOOPA: obj = new CRedKoopa(x, y); break;
 	case OBJECT_TYPE_RED_PARA_GOOMBA: obj = new CRedParaGoomba(x, y); break;
 	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
 	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
@@ -164,6 +163,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	{
 		int type = atoi(tokens[3].c_str());
 		obj = new CGreenKoopa(x, y, type);
+		break;
+	}
+	case OBJECT_TYPE_RED_KOOPA:
+	{
+		int type = atoi(tokens[3].c_str());
+		obj = new CRedKoopa(x, y, type);
 		break;
 	}
 
