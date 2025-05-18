@@ -32,6 +32,7 @@
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="BulletPlant.cpp" />
     <ClCompile Include="MushRoom.cpp" />
+    <ClCompile Include="GreenKoopa.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />
@@ -68,6 +69,7 @@
     <ClInclude Include="Utils.h" />
     <ClInclude Include="BulletPlant.h" />
     <ClInclude Include="MushRoom.h" />
+    <ClInclude Include="GreenKoopa.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

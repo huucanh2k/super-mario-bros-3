@@ -15,7 +15,7 @@
 #include "Pipeline.h"
 #include "PlantShoot.h"
 #include "SuperLeaf.h"
-
+#include "GreenKoopa.h"
 #include "RedParaGoomba.h"
 
 #include "SampleKeyEventHandler.h"
@@ -160,6 +160,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	case OBJECT_TYPE_BRICK_QUESTION_SUPER_LEAF: obj = new CBrickQuestion(x, y, BRICK_QUESTION_LEAF); break;
 	case OBJECT_TYPE_PIPELINE: obj = new CPipeline(x, y, MODEL_L_PIPE); break;
 	case OBJECT_TYPE_PLANT_SHOOT: obj = new CPlantShoot(x, y); break;
+	case OBJECT_TYPE_GREEN_KOOPA:
+	{
+		int type = atoi(tokens[3].c_str());
+		obj = new CGreenKoopa(x, y, type);
+		break;
+	}
 
 	case OBJECT_TYPE_BOX:
 	{

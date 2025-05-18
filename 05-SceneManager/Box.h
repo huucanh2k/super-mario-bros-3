@@ -2,6 +2,8 @@
 
 #include "GameObject.h"
 
+#define PER_BBOX_WIDTH 16
+#define PER_BBOX_HEIGHT 16
 // 
 // The most popular type of object in Mario! 
 // 

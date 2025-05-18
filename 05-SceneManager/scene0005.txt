@@ -23,7 +23,7 @@ map.txt
 [OBJECTS]
 # type	x	y	extra_settings per object type
 
-# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10, Leaf = 11, BQ_Leaf 16
+# type: 0 = Mario , 1 = Brick, 2 = Goomba, 3 = Koopas, Box = 6, BQ = 7, BQ_Item = 8, Pipeline = 9, Plant = 10, Leaf = 11, BQ_Leaf 16, Green Koopa 18
 # See OBJECT_TYPE constants in AssetIDs.h
 
 # MARIO
@@ -69,6 +69,9 @@ map.txt
 
 #RED KOOPA
 12	550	373
+
+#GREEN KOOPA
+18	200	380	0
 
 #COIN
 4	100	120
