@@ -1,30 +1,27 @@
 [SETTINGS]
-start	5
+start	1
 width	320
 height	240
 
 #id	type	file
 # type: 0: intro, 1: play scene 
 [SCENES]
-0	intro.txt
-1	scene01.txt
-2	scene02.txt
-5	scene0005.txt
+0	scenes\intro.txt
+1	scenes\scene01.txt
+2	scenes\scene02.txt
 
 # id	file 
 [TEXTURES]
 -100	textures\bbox.png
 0	textures\mario.png
+1	textures\MarioSprite.png
 10	textures\enemies.png
+11	textures\enemies_full.png
+12	textures\enemies_full_flip.png
+13	textures\enemies_full_reverse.png
 20	textures\misc.png
-25	textures\misc-reverse.png
-30	textures\map.png
-50	textures\enemies_3.png
-60	textures\enemies_4.png
-80	textures\misc_left.png
-90	textures\misc_right.png
-100	textures\mario2.png
-120	textures\enemies_2.png
-
-
-
+21	textures\misc_2.png
+30 	textures\tiles.png
+40	textures\Hud.png
+41	textures\Hud_2.png
+50	textures\Particle.png
