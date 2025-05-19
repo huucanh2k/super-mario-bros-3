@@ -514,8 +514,7 @@ void CGame::SwitchScene()
 
 	DebugOut(L"[INFO] Switching to scene %d\n", next_scene);
 
-	if (scenes[current_scene]!=NULL)
-		scenes[current_scene]->Unload();
+	scenes[current_scene]->Unload();
 
 	CSprites::GetInstance()->Clear();
 	CAnimations::GetInstance()->Clear();
@@ -552,6 +551,16 @@ CGame::~CGame()
 	pRenderTargetView->Release();
 	pSwapChain->Release();
 	pD3DDevice->Release();
+}
+
+void CGame::CountDownFreezeTime()
+{
+	DWORD now = GetTickCount64();
+	if (now - freeze_start > freezeDuration)
+	{
+		isTimeFrozen = false;
+		freeze_start = 0;
+	}
 }
 
 CGame* CGame::GetInstance()
