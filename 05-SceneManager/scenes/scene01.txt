@@ -18,6 +18,7 @@ assets\fire_bullet.txt
 assets\HUD.txt
 assets\koopa.txt
 assets\red_para_goomba.txt
+assets\koopa_paratroopa.txt
 
 #RENDERING ORDER IS IMPORTANT
 [OBJECTS]
@@ -268,6 +269,9 @@ assets\red_para_goomba.txt
 # GOOMBA
 2	240	400
 2 	423	375
+
+# KOOPA PARATROOPA
+13	470	380	0
 
 #KOOPA
 11	558 	343

@@ -17,6 +17,7 @@
 #include "RaccoonTail.h"
 #include "Wall.h"
 #include "RedParaGoomba.h"
+#include "KoopaParatroopa.h"
 
 using namespace std;
 
@@ -295,6 +296,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		case OBJECT_TYPE_RED_PARA_GOOMBA:
 		{
 			obj = new CRedParaGoomba(x, y);
+			break;
+		}
+
+		case OBJECT_TYPE_KOOPA_PARATROOPA: 
+		{
+			int model = atof(tokens[3].c_str());
+			obj = new CKoopaParatroopa(x, y, model);
 			break;
 		}
 
