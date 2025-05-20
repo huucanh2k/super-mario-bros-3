@@ -9,16 +9,13 @@
 #include "Portal.h"
 #include "Coin.h"
 #include "Platform.h"
-#include "Map.h"
-#include "Box.h"
-#include "BrickQuestion.h"
-#include "Pipeline.h"
-#include "PlantShoot.h"
-#include "SuperLeaf.h"
-
-#include "RedParaGoomba.h"
-
+#include "SceneryObject.h"
 #include "SampleKeyEventHandler.h"
+#include "PiranhaPlant.h"
+#include "FireBullet.h"
+#include "Koopa.h"
+#include "RaccoonTail.h"
+#include "Wall.h"
 
 using namespace std;
 
@@ -27,13 +24,15 @@ CPlayScene::CPlayScene(int id, LPCWSTR filePath) :
 {
 	player = NULL;
 	key_handler = new CSampleKeyHandler(this);
+	backgroundColor = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f); // Default to black
+	rightBoundary = 0;
+	bottomBoundary = 0;
 }
-
 
 #define SCENE_SECTION_UNKNOWN -1
 #define SCENE_SECTION_ASSETS	1
 #define SCENE_SECTION_OBJECTS	2
-#define SCENE_SECTION_MAP	3
+#define SCENE_SECTION_SETTINGS	3
 
 #define ASSETS_SECTION_UNKNOWN -1
 #define ASSETS_SECTION_SPRITES 1
@@ -58,7 +57,7 @@ void CPlayScene::_ParseSection_SPRITES(string line)
 	if (tex == NULL)
 	{
 		DebugOut(L"[ERROR] Texture ID %d not found!\n", texID);
-		return;
+		return; 
 	}
 
 	CSprites::GetInstance()->Add(ID, l, t, r, b, tex);
@@ -71,31 +70,8 @@ void CPlayScene::_ParseSection_ASSETS(string line)
 	if (tokens.size() < 1) return;
 
 	wstring path = ToWSTR(tokens[0]);
-
+	
 	LoadAssets(path.c_str());
-}
-
-
-void CPlayScene::_ParseSection_MAP(string line)
-{
-	vector<string> tokens = split(line);
-
-	// skip invalid lines - an object set must have at least id, x, y
-	if (tokens.size() < 2) return;
-
-	int object_type = atoi(tokens[0].c_str());
-	float x = (float)atof(tokens[1].c_str());
-	float y = (float)atof(tokens[2].c_str());
-
-	CGameObject* obj = NULL;
-
-
-	obj = new CMap(x, y);
-
-
-
-	obj->SetPosition(x, y);
-	MapObject = obj;
 }
 
 void CPlayScene::_ParseSection_ANIMATIONS(string line)
@@ -112,7 +88,7 @@ void CPlayScene::_ParseSection_ANIMATIONS(string line)
 	for (int i = 1; i < tokens.size(); i += 2)	// why i+=2 ?  sprite_id | frame_time  
 	{
 		int sprite_id = atoi(tokens[i].c_str());
-		int frame_time = atoi(tokens[i + 1].c_str());
+		int frame_time = atoi(tokens[i+1].c_str());
 		ani->Add(sprite_id, frame_time);
 	}
 
@@ -120,7 +96,7 @@ void CPlayScene::_ParseSection_ANIMATIONS(string line)
 }
 
 /*
-	Parse a line in section [OBJECTS]
+	Parse a line in section [OBJECTS] 
 */
 void CPlayScene::_ParseSection_OBJECTS(string line)
 {
@@ -133,92 +109,218 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	float x = (float)atof(tokens[1].c_str());
 	float y = (float)atof(tokens[2].c_str());
 
-	CGameObject* obj = NULL;
+	CGameObject *obj = NULL;
+	int type = 0;
 
 	switch (object_type)
 	{
-	case OBJECT_TYPE_MARIO:
-		if (player != NULL)
+		case OBJECT_TYPE_MARIO:
 		{
-			DebugOut(L"[ERROR] MARIO object was created before!\n");
-			return;
+			if (player != NULL)
+			{
+				DebugOut(L"[ERROR] MARIO object was created before!\n");
+				return;
+			}
+
+			// Create Mario
+			obj = new CMario(x, y);
+			player = (CMario*)obj;
+
+			// Create the tail for Mario
+			LPGAMEOBJECT tail = new CRaccoonTail(x, y);
+
+			// Set the tail for Mario
+			dynamic_cast<CMario*>(player)->SetTail(tail);
+
+			// Add the tail to the object list
+			objects.push_back(tail);
+
+			DebugOut(L"[INFO] Player object has been created!\n");
+			break;
 		}
-		obj = new CMario(x, y);
-		player = (CMario*)obj;
 
-		DebugOut(L"[INFO] Player object has been created!\n");
+		case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
+
+		case OBJECT_TYPE_BRICK:
+			type = atoi(tokens[3].c_str());
+			obj = new CBrick(x, y, type);
+			break;
+
+		case OBJECT_TYPE_WALL:
+		{
+			float rightBound = (float)atof(tokens[3].c_str());
+			float bottomBound = (float)atof(tokens[4].c_str());
+			type = atoi(tokens[5].c_str());
+			obj = new CWall(x, y, rightBound, bottomBound, type);
+			break;
+		}
+
+		case OBJECT_TYPE_QUESTION_BRICK:
+			type = atoi(tokens[3].c_str());
+			obj = new CQuestionBrick(x, y, type);
+			//WARNING: load item you want the quesiton brick to contain first then load the brick
+
+			if (!objects.empty())
+			{
+				((CQuestionBrick*)obj)->SetItem(objects.back());
+				objects.back()->SetActive(false);
+			}
+
+			break;
+
+		case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
+
+		case OBJECT_TYPE_POWER_UP: obj = new CPowerUp(x, y); break;
+
+		case OBJECT_TYPE_PLATFORM:
+		{
+			float cell_width = (float)atof(tokens[3].c_str());
+			float cell_height = (float)atof(tokens[4].c_str());
+			int length = atoi(tokens[5].c_str());
+			int sprite_begin = atoi(tokens[6].c_str());
+			int sprite_middle = atoi(tokens[7].c_str());
+			int sprite_end = atoi(tokens[8].c_str());
+
+			obj = new CPlatform(
+				x, y,
+				cell_width, cell_height, length,
+				sprite_begin, sprite_middle, sprite_end
+			);
+
+			break;
+		}
+
+		case OBJECT_TYPE_BOX_PLATFORM:
+		{
+			float cell_width = (float)atof(tokens[3].c_str());
+			float cell_height = (float)atof(tokens[4].c_str());
+			int length = atoi(tokens[5].c_str());
+			int width = atoi(tokens[6].c_str());
+			int sprite_id_TL = atoi(tokens[7].c_str());
+			int sprite_id_MT = atoi(tokens[8].c_str());
+			int sprite_id_TR = atoi(tokens[9].c_str());
+			int sprite_id_ML = atoi(tokens[10].c_str());
+			int sprite_id_fill = atoi(tokens[11].c_str());
+			int sprite_id_MR = atoi(tokens[12].c_str());
+			int sprite_id_BL = atoi(tokens[13].c_str());
+			int sprite_id_MB = atoi(tokens[14].c_str());
+			int sprite_id_BR = atoi(tokens[15].c_str());
+			int sprite_id_SOTCorner = atoi(tokens[16].c_str());
+			int sprite_id_SOTBody = atoi(tokens[17].c_str());
+			int sprite_id_SOTBottom = atoi(tokens[18].c_str());
+
+			obj = new CBoxPlatform(
+				x, y, 
+				length, width, cell_width, cell_height,
+				sprite_id_TL, sprite_id_TR, sprite_id_BL, sprite_id_BR, sprite_id_fill,
+				sprite_id_MT, sprite_id_MB, sprite_id_ML, sprite_id_MR, 
+				sprite_id_SOTCorner, sprite_id_SOTBody, sprite_id_SOTBottom
+			);
+
+			break;
+		}
+
+		case OBJECT_TYPE_PIPE:
+		{
+			float cell_width = (float)atof(tokens[3].c_str());
+			float cell_height = (float)atof(tokens[4].c_str());
+			int height = atoi(tokens[5].c_str());
+			int sprite_tl = atoi(tokens[6].c_str());
+			int sprite_tr = atoi(tokens[7].c_str());
+			int sprite_bl = atoi(tokens[8].c_str());
+			int sprite_br = atoi(tokens[9].c_str());
+
+			obj = new CPipe(
+				x, y,
+				cell_width, cell_height, height,
+				sprite_tl, sprite_tr, sprite_bl, sprite_br
+			);
+
+			/*if (!objects.empty())
+			{
+				dynamic_cast<CPipe*>(obj)->SetItem(objects.back());
+				objects.back()->SetActive(false);
+			}*/
+			break;
+		}
+
+		case OBJECT_TYPE_SCENERY_OBJ: 
+		{
+			float cellWidth = (float)atof(tokens[3].c_str());
+			float cellHeight = (float)atof(tokens[4].c_str());
+			int length = atoi(tokens[5].c_str());
+			int width = atoi(tokens[6].c_str());
+
+			vector<vector<int>> spriteIDs;
+			for (int i = 0; i < width; i++)
+			{
+				vector<int> row;
+				for (int j = 0; j < length; j++)
+				{
+					int spriteID = atoi(tokens[7 + i * length + j].c_str());
+					row.push_back(spriteID);
+				}
+				spriteIDs.push_back(row);
+			}
+
+			obj = new CSceneryObject(x, y, length, width, cellWidth, cellHeight, spriteIDs);
+
+			//DebugOut(L"Loaded Tussock with spriteIDs:\n");
+			//for (size_t i = 0; i < spriteIDs.size(); i++) {
+			//	for (size_t j = 0; j < spriteIDs[i].size(); j++) {
+			//		DebugOut(L"%d ", spriteIDs[i][j]);
+			//	}
+			//	DebugOut(L"\n"); // New line after each row
+			//}
+			/*CGame* game = CGame::GetInstance();
+			DebugOut(L"BackBufferWidth: %d\n", game->GetBackBufferWidth());
+			DebugOut(L"BackBufferHeight: %d\n", game->GetBackBufferHeight());*/
+
+			break;
+		}
+
+		case OBJECT_TYPE_PIRANHA_PLANT:
+		{
+			obj = new CPiranhaPlant(x, y);
+			break;
+		}
+
+		case OBJECT_TYPE_KOOPA:
+		{
+			obj = new CKoopa(x, y);
+			break;
+		}
+
+		case OBJECT_TYPE_PORTAL:
+		{
+			float r = (float)atof(tokens[3].c_str());
+			float b = (float)atof(tokens[4].c_str());
+			int scene_id = atoi(tokens[5].c_str());
+			obj = new CPortal(x, y, r, b, scene_id);
+		}
 		break;
-	case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y); break;
-	case OBJECT_TYPE_KOOPA: obj = new CKoopa(x, y); break;
-	case OBJECT_TYPE_RED_KOOPA: obj = new CRedKoopa(x, y); break;
-	case OBJECT_TYPE_RED_PARA_GOOMBA: obj = new CRedParaGoomba(x, y); break;
-	case OBJECT_TYPE_BRICK: obj = new CBrick(x, y); break;
-	case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
-	case OBJECT_TYPE_SUPER_LEAF: obj = new CSuperLeaf(x, y); break;
-	case OBJECT_TYPE_BRICK_QUESTION_COIN: obj = new CBrickQuestion(x, y, BRICK_QUESTION_COIN); break;
-	case OBJECT_TYPE_BRICK_QUESTION_NOT_COIN: obj = new CBrickQuestion(x, y, BRICK_QUESTION_NOT_COIN); break;
-	case OBJECT_TYPE_BRICK_QUESTION_SUPER_LEAF: obj = new CBrickQuestion(x, y, BRICK_QUESTION_LEAF); break;
-	case OBJECT_TYPE_PIPELINE: obj = new CPipeline(x, y, MODEL_L_PIPE); break;
-	case OBJECT_TYPE_PLANT_SHOOT: obj = new CPlantShoot(x, y); break;
 
-	case OBJECT_TYPE_BOX:
-	{
-
-		float cell_width = (float)atof(tokens[3].c_str());
-		float cell_height = (float)atof(tokens[4].c_str());
-		int length = atoi(tokens[5].c_str());
-		int sprite_begin = atoi(tokens[6].c_str());
-		int sprite_middle = atoi(tokens[7].c_str());
-		int sprite_end = atoi(tokens[8].c_str());
-
-		obj = new CBox(
-			x, y,
-			cell_width, cell_height, length,
-			sprite_begin, sprite_middle, sprite_end
-		);
-
-		break;
-	}
-
-	case OBJECT_TYPE_PLATFORM:
-	{
-
-		float cell_width = (float)atof(tokens[3].c_str());
-		float cell_height = (float)atof(tokens[4].c_str());
-		int length = atoi(tokens[5].c_str());
-		int sprite_begin = atoi(tokens[6].c_str());
-		int sprite_middle = atoi(tokens[7].c_str());
-		int sprite_end = atoi(tokens[8].c_str());
-
-		obj = new CPlatform(
-			x, y,
-			cell_width, cell_height, length,
-			sprite_begin, sprite_middle, sprite_end
-		);
-
-		break;
-	}
-
-	case OBJECT_TYPE_PORTAL:
-	{
-		float r = (float)atof(tokens[3].c_str());
-		float b = (float)atof(tokens[4].c_str());
-		int scene_id = atoi(tokens[5].c_str());
-		obj = new CPortal(x, y, r, b, scene_id);
-	}
-	break;
-
-
-	default:
-		DebugOut(L"[ERROR] Invalid object type: %d\n", object_type);
-		return;
+		default:
+			DebugOut(L"[ERROR] Invalid object type: %d\n", object_type);
+			return;
 	}
 
 	// General object setup
 	obj->SetPosition(x, y);
 
-
 	objects.push_back(obj);
+}
+
+void CPlayScene::_ParseSection_SETTINGS(string line)
+{
+	vector<string> tokens = split(line);
+	if (tokens.size() < 2) return;
+	if (tokens[0] == "right")
+		rightBoundary = (float)atof(tokens[1].c_str());
+	else if (tokens[0] == "bottom")
+		bottomBoundary = (float)atof(tokens[1].c_str());
+	else
+		DebugOut(L"[ERROR] Unknown scene setting: %s\n", ToWSTR(tokens[0]).c_str());
 }
 
 void CPlayScene::LoadAssets(LPCWSTR assetFile)
@@ -260,11 +362,13 @@ void CPlayScene::Load()
 {
 	DebugOut(L"[INFO] Start loading scene from : %s \n", sceneFilePath);
 
+	SetBackgroundColor(181.0f / 255.0f, 235.0f / 255.0f, 242.0f / 255.0f, 255.0f / 255.0f);
+
 	ifstream f;
 	f.open(sceneFilePath);
 
 	// current resource section flag
-	int section = SCENE_SECTION_UNKNOWN;
+	int section = SCENE_SECTION_UNKNOWN;					
 
 	char str[MAX_SCENE_LINE];
 	while (f.getline(str, MAX_SCENE_LINE))
@@ -274,7 +378,7 @@ void CPlayScene::Load()
 		if (line[0] == '#') continue;	// skip comment lines	
 		if (line == "[ASSETS]") { section = SCENE_SECTION_ASSETS; continue; };
 		if (line == "[OBJECTS]") { section = SCENE_SECTION_OBJECTS; continue; };
-		if (line == "[MAP]") { section = SCENE_SECTION_MAP; continue; };
+		if (line == "[SETTINGS]") { section = SCENE_SECTION_SETTINGS; continue; };
 		if (line[0] == '[') { section = SCENE_SECTION_UNKNOWN; continue; }	
 
 		//
@@ -284,10 +388,12 @@ void CPlayScene::Load()
 		{ 
 			case SCENE_SECTION_ASSETS: _ParseSection_ASSETS(line); break;
 			case SCENE_SECTION_OBJECTS: _ParseSection_OBJECTS(line); break;
-			case SCENE_SECTION_MAP: _ParseSection_MAP(line); break;
-
+			case SCENE_SECTION_SETTINGS: _ParseSection_SETTINGS(line); break;
 		}
 	}
+
+	//Loading HUD
+	if(player) HUD = new CHUD(dynamic_cast<CMario*>(player));
 
 	f.close();
 
@@ -299,17 +405,66 @@ void CPlayScene::Update(DWORD dt)
 	// We know that Mario is the first object in the list hence we won't add him into the colliable object list
 	// TO-DO: This is a "dirty" way, need a more organized way 
 
+	//I just added mario to collision list so mario would collide correctly with other objects
+	//CGame* game = CGame::GetInstance();
+
 	vector<LPGAMEOBJECT> coObjects;
-	for (size_t i = 1; i < objects.size(); i++)
+	for (size_t i = 0; i < objects.size(); i++)
 	{
 		coObjects.push_back(objects[i]);
 	}
 
 	for (size_t i = 0; i < objects.size(); i++)
 	{
+		if (!objects[i]->IsActive()) continue;
 		objects[i]->Update(dt, &coObjects);
 	}
 
+	if(player) HUD->Update(dt);
+
+	// skip the rest if scene was already unloaded (Mario::Update might trigger PlayScene::Unload)
+	//if (player == NULL) return; 
+
+	//// Update camera to follow mario
+	//float cx, cy;
+	//player->GetPosition(cx, cy);
+
+	//// Get camera position
+	//float camX, camY;
+	//game->GetCamPos(camX, camY);
+
+	//// Map size
+	//float mapWidth = 2816.0f;
+	//float mapHeight = 432.0f;
+
+	//// Define margin boundaries    
+	//float marginX = 80.0f; // Horizontal margin    
+	//float marginY = 40.0f;  // Vertical margin  
+
+	//// Only move camera if Mario pushes outside the margin
+	//if (cx > camX + game->GetBackBufferWidth() - marginX)
+	//	camX = cx - (game->GetBackBufferWidth() - marginX);
+	//else if (cx < camX + marginX)
+	//	camX = cx - marginX;
+
+	//if (cy > camY + game->GetBackBufferHeight() - marginY)
+	//	camY = cy - (game->GetBackBufferHeight() - marginY);
+	//else if (cy < camY + marginY)
+	//	camY = cy - marginY;
+
+	//if (camX < -8)
+	//	camX = -8;
+	//if (camX > mapWidth - game->GetBackBufferWidth() - 8)
+	//	camX = mapWidth - game->GetBackBufferWidth();
+	//if (camY < 0)
+	//	camY = 0;
+	//if (camY > mapHeight - game->GetBackBufferHeight() - 9)
+	//	camY = mapHeight - game->GetBackBufferHeight() - 9;
+
+	//game->SetCamPos(camX, camY);
+
+	//// Purged deleted objects
+	//PurgeDeletedObjects();
 	// skip the rest if scene was already unloaded (Mario::Update might trigger PlayScene::Unload)
 	if (player == NULL) return;
 
@@ -318,97 +473,63 @@ void CPlayScene::Update(DWORD dt)
 	player->GetPosition(cx, cy);
 
 	CGame* game = CGame::GetInstance();
+
+	// Get Mario's vertical velocity to check if he's flying
+	float vy = ((CMario*)player)->GetVy();
+	CMario* mario = (CMario*)player;
+
+	// Follow on X axis
 	cx -= game->GetBackBufferWidth() / 2;
-	cy -= game->GetBackBufferHeight() / 2;
 
+	float marioX, marioY;
+	mario->GetPosition(marioX, marioY);
 
-	CGame::GetInstance()->SetCamPos(cx, cy /*cy*/);
+	// If mario is flying then switch camera to follow him on y axis else keep it fixed
+	if (mario->IsInAir() && vy < 0 || marioY < 200.f)
+		isCameraFollowMarioY = true;
+	else if (mario->IsOnPlatform() && marioY >= 340.f)
+		isCameraFollowMarioY = false;
+
+	//Make camera follow Mario vertically when flying
+	if (isCameraFollowMarioY) {
+		cy -= game->GetBackBufferHeight() / 2;
+	}
+	else {
+		// Regular fixed camera Y position when not flying
+		cy = 220.0f;
+	}
+
+	if (cx < 0) cx = 0;
+
+	//Boundary is set in the scene file under SETTINGS section
+	else if (cx > rightBoundary - game->GetBackBufferWidth() - 9.f) cx = rightBoundary - game->GetBackBufferWidth() - 9.f;
+
+	if (cy < 0) cy = 0;
+	else if (cy > bottomBoundary) cy = bottomBoundary;
+
+	CGame::GetInstance()->SetCamPos(cx, cy);
 
 	PurgeDeletedObjects();
 }
 
-void CPlayScene::LoadHUD() {
-
-	//CHUD_1* hud = CHUD_1::GetInstance();
-
-	//CGame* game = CGame::GetInstance();
-
-	//hud = new CHUD_1(game->GetCameraX() + 150.0, game->GetCameraY() + 187.0);
-
-	//objects.push_back(hud);
-}
-
-CGameObject* CPlayScene::CreateObjectAndReturn(int id, float x, float y, float vx, float vy)
-{
-
-	int object_type = id;
-
-	CGameObject* obj = NULL;
-	//LoadHUD();
-
-	switch (object_type)
-	{
-
-	/*case OBJECT_TYPE_RED_KOOPA_WALKING: 
-		obj = new CRedKoopa(x, y, 1); 
-		break;*/
-
-	/*case OBJECT_TYPE_NEW_RED_KOOPA: 
-		obj = new CRedKoopa(x, y, 2); 
-		break;*/
-
-		//case OBJECT_TYPE_NEW_RED_KOOPA_ON_GLASS_BRICK: 
-		// obj = new CRed_Koopa(x, y,2); 
-		// break;
-
-	/*case OBJECT_TYPE_GREEN_KOOPA_WALKING: 
-		obj = new CGreen_Koopa(x, y, 1); 
-		break;*/
-
-	/*case OBJECT_TYPE_PARA_GOOMBA: 
-		obj = new CPara_Goomba(x, y); 
-		break;*/
-
-		//case OBJECT_TYPE_GOOMBA: obj = new CGoomba(x, y, GOOMBA_BASIC); break;
-
-	case OBJECT_TYPE_CHECK_FALL: 
-		obj = new CCheckFall(x, y, 1); 
-		break;
-
-	case OBJECT_TYPE_CHECK_FALL_KOOPA_ON_GLASS_BRICK: 
-		obj = new CCheckFall(x, y, 2); 
-		break;
-
-	case OBJECT_TYPE_FIRE_BULLET_OF_PLANT:
-		obj = new CBulletPlant(x, y, 0 ,0);
-		break;
-
-
-	default:
-		DebugOut(L"[ERROR] Invalid object type: %d\n", object_type);
-		return NULL;
-	}
-
-	// General object setup
-	obj->SetPosition(x, y);
-
-
-	objects.push_back(obj);
-	return obj;
-
-}
-
-
 void CPlayScene::Render()
 {
+	// Clear the back buffer with the background color
 	CGame* game = CGame::GetInstance();
-	if (MapObject)
-	{
-		MapObject->Render();
+	ID3D10Device* pD3DDevice = game->GetDirect3DDevice();
+	ID3D10RenderTargetView* pRTV = game->GetRenderTargetView();
+
+	// Clear the back buffer with the background color
+	pD3DDevice->ClearRenderTargetView(pRTV, backgroundColor);
+
+	// Render all game objects
+	for (int i = 0; i < objects.size(); i++) {
+		if (!objects[i]->IsActive()) continue;
+		objects[i]->Render();
 	}
 
-	for (int i = 0; i < objects.size(); i++)
-		objects[i]->Render();
+	// Render HUD
+	if (player) HUD->Render();
 }
 
 /*
@@ -427,7 +548,7 @@ void CPlayScene::Clear()
 /*
 	Unload scene
 
-	TODO: Beside objects, we need to clean up sprites, animations and textures as well
+	TODO: Beside objects, we need to clean up sprites, animations and textures as well 
 
 */
 void CPlayScene::Unload()
@@ -437,6 +558,11 @@ void CPlayScene::Unload()
 
 	objects.clear();
 	player = NULL;
+
+	if (HUD) {
+		delete HUD;
+		HUD = nullptr;
+	}
 
 	DebugOut(L"[INFO] Scene %d unloaded! \n", id);
 }
@@ -461,9 +587,4 @@ void CPlayScene::PurgeDeletedObjects()
 	objects.erase(
 		std::remove_if(objects.begin(), objects.end(), CPlayScene::IsGameObjectDeleted),
 		objects.end());
-}
-
-void CPlayScene::AddObject(LPGAMEOBJECT object)
-{
-	objects.push_back(object);
 }

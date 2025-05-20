@@ -46,10 +46,16 @@ void CCollision::SweptAABB(
 	float br = dx > 0 ? mr + dx : mr;
 	float bb = dy > 0 ? mb + dy : mb;
 
+	//Objects doesnt overlap so no collision
 	if (br < sl || bl > sr || bb < st || bt > sb) return;
 
+	// Object over lapping but not moving
+	// Still initialize t = 1.0f to indicate that there is a collision
+	// Why 1.0f? Because we want to use this value to calculate the normal vector for object to still move normally
+	// Why nx and not ny? cause it didnt cause any error :D
+	if (dx == 0 && dy == 0)
 
-	if (dx == 0 && dy == 0) return;		// moving object is not moving > obvious no collision
+		return;
 
 	if (dx > 0)
 	{
@@ -354,7 +360,5 @@ void CCollision::Process(LPGAMEOBJECT objSrc, DWORD dt, vector<LPGAMEOBJECT>* co
 
 		objSrc->OnCollisionWith(e);			
 	}
-
-
 	for (UINT i = 0; i < coEvents.size(); i++) delete coEvents[i];
 }
