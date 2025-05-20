@@ -1,61 +1,94 @@
 #pragma once
-
-#include "GameObject.h"
+#include "Enemy.h"
+#include "Animation.h"
+#include "Animations.h"
+#include "Platform.h"
+#include "BoxPlatform.h"
+#include "Brick.h"
+#include "Mario.h"
 #include "PlayScene.h"
+#include "PiranhaPlant.h"
 
-#define KOOPA_GRAVITY 0.002f
-#define KOOPA_WALKING_SPEED 0.05f
-#define KOOPA_SHELL_FAST_MOVING_SPEED 0.2f
+#define KOOPA_ANI_WALKING_LEFT 8000
+#define KOOPA_ANI_WALKING_RIGHT 8001
+#define KOOPA_ANI_SHELL_IDLE 8002
+#define KOOPA_ANI_SHELL_MOVE 8003
+#define KOOPA_ANI_SHELL_SHAKING 8004
+#define KOOPA_ANI_SHELL_REVERSE_IDLE 8005
+#define KOOPA_ANI_SHELL_REVERSE_MOVE 8006
+#define KOOPA_ANI_SHELL_REVERSE_SHAKING 8007
+#define KOOPA_ANI_DIE 8007 // same as shell move
+
+#define KOOPA_GRAVITY 0.001f
+#define KOOPA_WALKING_SPEED 0.03f
+#define KOOPA_SHELL_SPEED 0.15f
+#define KOOPA_DEFLECT_SPEED 0.3f
 
 #define KOOPA_BBOX_WIDTH 16
-#define KOOPA_BBOX_HEIGHT 24
-#define KOOPA_BBOX_HEIGHT_DIE 7
-
-#define KOOPA_DIE_TIMEOUT 500
-#define KOOPA_SHELL_TIMEOUT 6000
-
-#define KOOPA_SHELL_SPEED 0
+#define KOOPA_BBOX_HEIGHT 26
 
 #define KOOPA_SHELL_BBOX_WIDTH 16
 #define KOOPA_SHELL_BBOX_HEIGHT 14
 
-#define KOOPA_STATE_WALKING_LEFT 100
-#define KOOPA_STATE_WALKING_RIGHT 101
-#define KOOPA_STATE_SHELL 200
-#define KOOPA_STATE_DIE 300
-#define KOOPA_STATE_SHELL_FAST_MOVING_LEFT 400
-#define KOOPA_STATE_SHELL_FAST_MOVING_RIGHT 401
-#define KOOPA_STATE_SHELL_HOLD 500
+#define KOOPA_SHELL_DURATION 5000
+#define KOOPA_SHELL_SHAKING_DURATION 2000
+#define KOOPA_DIE_DURATION 3000
 
-#define ID_ANI_KOOPA_WALKING_LEFT 6000
-#define ID_ANI_KOOPA_WALKING_RIGHT 6001
-#define ID_ANI_KOOPA_SHELL 6002
-#define ID_ANI_KOOPA_DIE 6003
-#define ID_ANI_KOOPA_SHELL_FAST_MOVING 6004
-#define ID_ANI_KOOPA_SHELL_HOLD 6005
+#define KOOPA_STATE_WALKING_LEFT 0
+#define KOOPA_STATE_WALKING_RIGHT 1
+#define KOOPA_STATE_SHELL_IDLE 2
+#define KOOPA_STATE_SHELL_MOVE 3
+#define KOOPA_STATE_SHELL_SHAKING 4
+#define KOOPA_STATE_SHELL_REVERSE_IDLE 5
+#define KOOPA_STATE_SHELL_REVERSE_MOVE 6
+#define KOOPA_STATE_SHELL_REVERSE_SHAKING 7
+#define KOOPA_STATE_DIE 8
+#define KOOPA_STATE_SHELL_REVERSE_JUMP	9
 
-class CKoopa : public CGameObject
+
+class CKoopa : public CEnemy
 {
 protected:
 	float ax;
 	float ay;
 
+	ULONGLONG stateShellStart;
+	ULONGLONG stateShakingStart;
 	ULONGLONG die_start;
-	ULONGLONG shell_start;
 
-	virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom);
-	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
-	virtual void Render();
+	LPGAMEOBJECT platform;
 
-	virtual int IsCollidable() { return 1; };
-	virtual int IsBlocking() { return 0; }
-
-	virtual void OnNoCollision(DWORD dt);
-	virtual void OnCollisionWith(LPCOLLISIONEVENT e);
-
+	bool isHeld;
 public:
-	CKoopa(float x, float y);
-	virtual void SetState(int state);
+	CKoopa(float x, float y) : CEnemy(x, y)
+	{
+		this->ax = 0;
+		this->ay = KOOPA_GRAVITY;
+		SetState(KOOPA_STATE_WALKING_LEFT);
+		stateShellStart = -1;
+		stateShakingStart = -1;
+		die_start = -1;
+		isHeld = false;
+		platform = NULL;
+	}
 
-	int LeftOrRightMarrio();
+	void SetIsHeld(bool isHeld) { this->isHeld = isHeld; }
+	void Render();
+	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
+	void GetBoundingBox(float& l, float& t, float& r, float& b);
+	void SetState(int state);
+	int IsCollidable() {
+		return	1;
+	}
+
+	int IsBlocking() { return 0; }
+
+	void OnNoCollision(DWORD dt);
+	void OnCollisionWith(LPCOLLISIONEVENT e);
+	bool IsOnPlatform();
+	CMario* GetPlayer();
+
+	void OnCollisionWithBrick(LPCOLLISIONEVENT e);
+	//void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 };
+

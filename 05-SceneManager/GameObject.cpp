@@ -8,9 +8,6 @@
 #include "GameObject.h"
 #include "Sprites.h"
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
-
 CGameObject::CGameObject()
 {
 	x = y = 0;
@@ -18,6 +15,7 @@ CGameObject::CGameObject()
 	nx = 1;	
 	state = -1;
 	isDeleted = false;
+	isActive = true;
 }
 
 void CGameObject::RenderBoundingBox()
@@ -39,15 +37,6 @@ void CGameObject::RenderBoundingBox()
 	CGame::GetInstance()->GetCamPos(cx, cy);
 
 	CGame::GetInstance()->Draw(x - cx, y - cy, bbox, &rect, BBOX_ALPHA);
-}
-
-bool CGameObject::IsInScreen() {
-	float cam_x, cam_y;
-	int offSet = 20;
-	CGame::GetInstance()->GetCamPos(cam_x, cam_y);
-	if (x < cam_x - offSet || x > cam_x + SCREEN_WIDTH + offSet || y < cam_y - offSet || y > cam_y + SCREEN_HEIGHT + offSet)
-		return false;
-	return true;
 }
 
 CGameObject::~CGameObject()

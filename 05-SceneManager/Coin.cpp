@@ -1,16 +1,37 @@
 #include "Coin.h"
-#include "Mario.h"
-#include "PlayScene.h"
+#include "debug.h"
 
 void CCoin::Render()
 {
-	int aniId;
-	if (state == COIN_STATE_BASIC)
-		aniId = ID_ANI_COIN;
-
-	CAnimations::GetInstance()->Get(aniId)->Render(x, y);
+	CAnimations* animations = CAnimations::GetInstance();
+	animations->Get(ID_ANI_COIN)->Render(x, y);
 
 	//RenderBoundingBox();
+}
+
+void CCoin::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
+{
+	if (state == COIN_STATE_BOUNCE) {
+		//DebugOut(L"Coin bounce");
+		if (GetTickCount64() - bounceStart < COIN_BOUNCE_TIME)
+		{
+			y += vy * dt;
+			if (y <= originalY - COIN_BOUNCE_HEIGHT)
+			{
+				y = originalY - COIN_BOUNCE_HEIGHT;
+				vy = COIN_BOUNCE_SPEED;
+			}
+			else if (y > originalY && vy > 0)
+			{
+				CollectCoin();
+			}
+		}
+		else
+		{
+			y = originalY;
+			vy = 0;
+		}
+	}
 }
 
 void CCoin::GetBoundingBox(float& l, float& t, float& r, float& b)
@@ -21,35 +42,38 @@ void CCoin::GetBoundingBox(float& l, float& t, float& r, float& b)
 	b = t + COIN_BBOX_HEIGHT;
 }
 
-void CCoin::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
-
-	CMario* mario = (CMario*)((LPPLAYSCENE)CGame::GetInstance()->GetCurrentScene())->GetPlayer();
-
-	if (!canCollect) vy += ay * dt;
-
-	//DebugOut(L"[VANTOC] %f\n", vy);
-	if (vy > COIN_MAX_SPEED_FALL) {
-
-		Delete();
-	}
-	CGameObject::Update(dt, coObjects);
-	CCollision::GetInstance()->Process(this, dt, coObjects);
-}
-void CCoin::OnNoCollision(DWORD dt)
+void CCoin::SetState(int state)
 {
-	y += vy * dt;
-};
-
-void CCoin::SetState(int l) {
-	switch (l) {
-	case COIN_SUMMON_STATE:
-		vy = -OUT_BRICK;
-		canCollect = false;
-		break;
-
-	case COIN_STATE_BASIC:
-		canCollect = true;
-		break;
+	switch (state)
+	{
+		case COIN_STATE_BOUNCE:
+			//DebugOut(L"Coin bounce");
+			originalY = y - COIN_BBOX_HEIGHT; //This happen after question brick update new y position for coin
+			bounceStart = GetTickCount64();
+			vy = -COIN_BOUNCE_SPEED;
+			break;
 	}
-	CGameObject::SetState(l);
+
+	CGameObject::SetState(state);
+}
+
+void CCoin::CollectCoin()
+{
+	// Logic to handle coin collection
+	//I wanted mario to call oncollisionwithcoin function instead but this will do(Hopefully)
+	CGame* game = CGame::GetInstance();
+	CPlayScene* playScene = dynamic_cast<CPlayScene*>(game->GetCurrentScene());
+	CMario* mario = dynamic_cast<CMario*>(playScene->GetPlayer());
+	CParticle* particle = new CParticle(x, y, PARTICLE_TYPE_POINT);
+	playScene->Add(particle);
+	if (playScene)
+	{
+		if (mario)
+		{
+			mario->AddCoin();
+			mario->AddPoint(100);
+		}
+	}
+
+	this->Delete();
 }

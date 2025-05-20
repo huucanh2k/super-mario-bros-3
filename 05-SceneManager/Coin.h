@@ -4,34 +4,38 @@
 #include "Animation.h"
 #include "Animations.h"
 
+#include "debug.h"
+#include "Mario.h"
+#include "Game.h"
+#include "PlayScene.h"
+
 #define ID_ANI_COIN 11000
 
-
-#define COIN_GRAVITY 0.0003f
 #define	COIN_WIDTH 10
-#define OUT_BRICK 0.15f
-#define COIN_MAX_SPEED_FALL 0.08f
 #define COIN_BBOX_WIDTH 10
-#define COIN_BBOX_HEIGHT 16
-#define COIN_SUMMON_STATE 100
-#define COIN_STATE_BASIC 200
+#define COIN_BBOX_HEIGHT 14
+
+#define COIN_BOUNCE_SPEED 0.2f
+#define COIN_BOUNCE_HEIGHT 50.0f
+#define COIN_BOUNCE_TIME 2000
+
+#define COIN_STATE_BOUNCE 100
 
 class CCoin : public CGameObject {
-	int state;
-	float ay;
-	bool canCollect;
+	float originalY;
+	DWORD bounceStart;
 public:
-	CCoin(float x, float y) : CGameObject(x, y) {
-		state = COIN_STATE_BASIC;
-		ay = COIN_GRAVITY;
-	};
-	int GetState() { return state; }
-	void SetState(int s);
-	virtual void OnNoCollision(DWORD dt);
-	bool CanCollect() { return canCollect; }
-	void SetCanCollect(bool b) { canCollect = b; }
+	CCoin(float x, float y) : CGameObject(x, y) 
+	{
+		originalY = y;
+		bounceStart = 0;
+	}
 	void Render();
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void GetBoundingBox(float& l, float& t, float& r, float& b);
+
+	void SetState(int state);
 	int IsBlocking() { return 0; }
+
+	void CollectCoin();
 };
