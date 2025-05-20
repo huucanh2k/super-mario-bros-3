@@ -39,6 +39,20 @@ void CGameObject::RenderBoundingBox()
 	CGame::GetInstance()->Draw(x - cx, y - cy, bbox, &rect, BBOX_ALPHA);
 }
 
+bool CGameObject::IsInScreen()
+{
+	float l, t, r, b;
+	GetBoundingBox(l, t, r, b);
+
+	float cx, cy;
+	CGame::GetInstance()->GetCamPos(cx, cy);
+
+	if (l > cx + CGame::GetInstance()->GetBackBufferWidth() || r < cx || t > cy + CGame::GetInstance()->GetBackBufferHeight() || b < cy)
+		return false;
+
+	return true;
+}
+
 CGameObject::~CGameObject()
 {
 

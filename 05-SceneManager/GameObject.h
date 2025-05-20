@@ -38,6 +38,7 @@ public:
 	void SetPosition(float x, float y) { this->x = x, this->y = y; }
 	void SetSpeed(float vx, float vy) { this->vx = vx, this->vy = vy; }
 	void GetPosition(float &x, float &y) { x = this->x; y = this->y; }
+	float GetPositionY() { return this->y; }
 	void GetSpeed(float &vx, float &vy) { vx = this->vx; vy = this->vy; }
 	void GetNx(int& nx) { nx = this->nx; }
 
@@ -45,6 +46,7 @@ public:
 	bool IsActive() { return isActive; }
 
 	int GetState() { return this->state; }
+	bool IsInScreen();
 	virtual void Delete() { isDeleted = true;  }
 	bool IsDeleted() { return isDeleted; }
 
