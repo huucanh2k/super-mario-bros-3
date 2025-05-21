@@ -94,31 +94,47 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	//Handle Koopa Picking and Kicking
 	if (Koopa)
 	{
-		Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 2.f, y - 3.f);
+		if (level != MARIO_LEVEL_RACCOON)
+			Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 2.f, y - 3.f);
+		else
+			Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 7.f, y - 3.f);
 		Koopa->SetSpeed(0, 0);
+
 		//If koopa is out of shell while mario is still holding it, mario is hurt
 		if (Koopa->GetState() == KOOPA_STATE_WALKING_LEFT ||
 			Koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 		{
 			GetHurt();
-			if (nx = 1)
+			if (nx == 1) //Koopa direction is base on Mario direction
 				Koopa->SetState(KOOPA_STATE_WALKING_RIGHT);
 			else
 				Koopa->SetState(KOOPA_STATE_WALKING_LEFT);
+
+			dynamic_cast<CKoopa*>(Koopa)->SetIsHeld(false);
 			Koopa = NULL;
 		}
 		else
 		{
-			if (!isAbleToHold)
+			if (!isAbleToHold) //Mario release koopa
 			{
 				isKicking = true;
 				kick_start = now;
-				if (Koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-					Koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
-					Koopa->SetState(KOOPA_STATE_SHELL_MOVE);
+
+				//If koopa is in a wall and mario is kicking it, mario kill it
+				if (dynamic_cast<CKoopa*>(Koopa)->IsInWall())
+					Koopa->SetState(KOOPA_STATE_DIE);
 				else
-					Koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
-				Koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
+				{
+					if (Koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
+						Koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
+						Koopa->SetState(KOOPA_STATE_SHELL_MOVE);
+					else
+						Koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
+					//Koopa is kicked in the direction mario is looking
+					Koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
+				}
+
+				dynamic_cast<CKoopa*>(Koopa)->SetIsHeld(false);
 				Koopa = NULL;
 			}
 		}
