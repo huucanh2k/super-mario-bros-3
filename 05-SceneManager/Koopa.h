@@ -32,7 +32,7 @@
 
 #define KOOPA_SHELL_DURATION 5000
 #define KOOPA_SHELL_SHAKING_DURATION 2000
-#define KOOPA_DIE_DURATION 3000
+#define KOOPA_DIE_DURATION 500
 
 #define KOOPA_STATE_WALKING_LEFT 0
 #define KOOPA_STATE_WALKING_RIGHT 1
@@ -59,6 +59,7 @@ protected:
 	LPGAMEOBJECT platform;
 
 	bool isHeld;
+	BOOLEAN isInWall;
 public:
 	CKoopa(float x, float y) : CEnemy(x, y)
 	{
@@ -69,19 +70,22 @@ public:
 		stateShakingStart = -1;
 		die_start = -1;
 		isHeld = false;
+		isInWall = false;
 		platform = NULL;
 	}
 
 	void SetIsHeld(bool isHeld) { this->isHeld = isHeld; }
+	bool GetIsHeld() { return isHeld; }
 	void Render();
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void GetBoundingBox(float& l, float& t, float& r, float& b);
 	void SetState(int state);
-	int IsCollidable() {
-		return	1;
-	}
+	virtual void Reload();
+	int IsCollidable() { return (state != KOOPA_STATE_DIE); }
 
 	int IsBlocking() { return 0; }
+
+	BOOLEAN IsInWall() { return isInWall; }
 
 	void OnNoCollision(DWORD dt);
 	void OnCollisionWith(LPCOLLISIONEVENT e);
@@ -89,6 +93,4 @@ public:
 	CMario* GetPlayer();
 
 	void OnCollisionWithBrick(LPCOLLISIONEVENT e);
-	//void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 };
-

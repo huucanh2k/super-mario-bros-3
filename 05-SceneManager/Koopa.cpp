@@ -41,9 +41,19 @@ void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e) {
 			SetState(KOOPA_STATE_WALKING_LEFT);
 	}
 
+	if (e->nx == 0 && e->ny == 0 && e->obj->IsBlocking())
+	{
+		isInWall = true;
+	}
+
 	if (state == KOOPA_STATE_SHELL_MOVE || state == KOOPA_STATE_SHELL_REVERSE_MOVE) {
 		if (e->nx != 0 && e->obj->IsBlocking()) {
-			vx = -vx;
+			if (e->nx > 0) {
+				vx = KOOPA_SHELL_SPEED;
+			}
+			else {
+				vx = -KOOPA_SHELL_SPEED;
+			}
 		}
 
 		if (dynamic_cast<CQuestionBrick*>(e->obj)) {
@@ -51,7 +61,6 @@ void CKoopa::OnCollisionWith(LPCOLLISIONEVENT e) {
 			OnCollisionWithBrick(e);
 		}	
 	}
-	//DebugOut(L"Koopa is on platform: %d\n", isOnPlatform);
 }
 
 void CKoopa::OnCollisionWithBrick(LPCOLLISIONEVENT e) {
@@ -98,7 +107,7 @@ void CKoopa::Render() {
 	if (aniId != -1)
 		CAnimations::GetInstance()->Get(aniId)->Render(x, y);
 
-	RenderBoundingBox();
+	//RenderBoundingBox();
 }
 
 void CKoopa::SetState(int state) {
@@ -163,7 +172,7 @@ bool CKoopa::IsOnPlatform() {
 	float l, t, r, b;
 	platform->GetBoundingBox(l, t, r, b);
 
-	if (checkX >= l && checkX <= r) {
+	if (checkX >= l - 8.0f && checkX <= r + 8.0f) {
 		return true;
 	}
 
@@ -175,10 +184,17 @@ void CKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
 
 	//DebugOut(L"[INFO] Koopa velocity: %f %f\n", vx, vy);
 
+	 // Kiểm tra nếu Koopa đang ở trạng thái DIE
+	if (state == KOOPA_STATE_DIE && player && player->GetKoopa() == this) {
+		player->SetKoopa(NULL); // Đặt Koopa của Mario thành NULL
+	}
+
 	vy += ay * dt;
 	vx += ax * dt;
 
 	ULONGLONG now = GetTickCount64();
+
+	isInWall = false; 
 
 	bool isOnPlatform = IsOnPlatform();
 	if (!isOnPlatform) {
@@ -203,17 +219,34 @@ void CKoopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
 	case KOOPA_STATE_SHELL_REVERSE_SHAKING:
 		if (now - stateShakingStart > KOOPA_SHELL_SHAKING_DURATION) {
 			//DebugOut(L"[INFO] Koopa is out of shell\n");
-			vy = -0.4;
+			vy = -0.15;
 			SetState(KOOPA_STATE_WALKING_LEFT);
 		}
 		break;
 	case KOOPA_STATE_DIE:
 		if (now - die_start > KOOPA_DIE_DURATION) {
-			isDeleted = true;
+			this->Delete();
 		}
 		break;
 	}
 
+	//DebugOut(L"KOOPA SPEED: %f \n", vx);
+
 	CGameObject::Update(dt, coObjects);
 	CCollision::GetInstance()->Process(this, dt, coObjects);
+}
+
+void CKoopa::Reload()
+{
+	CGameObject::Reload();
+	this->ax = 0;
+	this->ay = KOOPA_GRAVITY;
+	SetState(KOOPA_STATE_WALKING_LEFT);
+	stateShellStart = -1;
+	stateShakingStart = -1;
+	die_start = -1;
+	isHeld = false;
+	platform = NULL;
+	isDeleted = false;
+	isActive = true;
 }

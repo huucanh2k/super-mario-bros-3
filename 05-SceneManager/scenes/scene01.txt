@@ -17,6 +17,8 @@ assets\scenery_object.txt
 assets\fire_bullet.txt
 assets\HUD.txt
 assets\koopa.txt
+assets\winged_goomba.txt
+
 
 #RENDERING ORDER IS IMPORTANT
 [OBJECTS]
@@ -269,6 +271,9 @@ assets\koopa.txt
 
 #KOOPA
 11	558 	343
+
+#WINGED GOOMBA
+12	258 	380
 
 # MARIO
 0	500	400

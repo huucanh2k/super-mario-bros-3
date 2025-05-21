@@ -320,4 +320,7 @@ public:
 	void StartTailAttack() { isTailAttacking = true; tailAttack_start = GetTickCount64(); }
 
 	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
+
+	LPGAMEOBJECT GetKoopa() { return Koopa; }
+	void SetKoopa(LPGAMEOBJECT koopa) { Koopa = koopa; }
 };
