@@ -16,6 +16,7 @@
 #include "Koopa.h"
 #include "RaccoonTail.h"
 #include "Wall.h"
+#include "WingedGoomba.h"
 
 using namespace std;
 
@@ -288,6 +289,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		case OBJECT_TYPE_KOOPA:
 		{
 			obj = new CKoopa(x, y);
+			break;
+		}
+
+		case OBJECT_TYPE_WINGED_GOOMBA:
+		{
+			obj = new CWingedGoomba(x, y);
 			break;
 		}
 
