@@ -10,6 +10,7 @@
 #include "QuestionBrick.h"
 #include "PiranhaPlant.h"
 #include "Koopa.h"
+#include "WingedGoomba.h"
 
 #include "Collision.h"
 
@@ -223,6 +224,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 	{
 		OnCollisionWithBrick(e);
 	}
+	else if (dynamic_cast<CWingedGoomba*>(e->obj))
+	{
+		OnCollisionWithWingedGoomba(e);
+	}
 }
 
 void CMario::OnCollisionWithBrick(LPCOLLISIONEVENT e)
@@ -356,6 +361,33 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 			Koopa = NULL;
 			GetHurt();
 		}
+	}
+}
+
+void CMario::OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e) {
+	CWingedGoomba* wingedGoomba = dynamic_cast<CWingedGoomba*>(e->obj);
+
+	if (e->ny < 0) {
+		vy = -MARIO_JUMP_DEFLECT_SPEED;
+
+		int state = wingedGoomba->GetState();
+		if (state != GOOMBA_WING_STATE_DIE && state != GOOMBA_WING_STATE_DIE_REVERSE) {
+			if (state != GOOMBA_WING_STATE_WALKING) {
+				DebugOut(L"[INFO] Mario jump on Winged Goomba\n");
+				wingedGoomba->SetState(GOOMBA_WING_STATE_WALKING);
+			}
+			else if (state == GOOMBA_WING_STATE_WALKING) {
+				DebugOut(L"[INFO] Mario jump on Winged Goomba (wing-lose)\n");
+				wingedGoomba->SetState(GOOMBA_WING_STATE_DIE);
+			}
+			AddPoint(100, e);
+		}
+	}
+	else if (e->nx != 0 || e->ny > 0)
+	{
+		if (wingedGoomba->GetState() != GOOMBA_WING_STATE_DIE
+			&& wingedGoomba->GetState() != GOOMBA_WING_STATE_DIE_REVERSE)
+			GetHurt();
 	}
 }
 
