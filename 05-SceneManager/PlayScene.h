@@ -17,6 +17,8 @@
 #include "HUD.h"
 //#include "Koopas.h"
 
+#define LOAD_CHUNK_WIDTH 32
+#define LOAD_CHUNK_HEIGHT 128
 
 class CPlayScene: public CScene
 {
@@ -52,6 +54,8 @@ public:
 
 	LPGAMEOBJECT GetPlayer() { return player; }
 	void GetBoundary(float& right, float& bottom) { right = rightBoundary; bottom = bottomBoundary; }
+	vector<LPGAMEOBJECT>& GetObjects() { return objects; }
+
 
 	void Add(LPGAMEOBJECT obj) { objects.push_back(obj); }
 
@@ -61,6 +65,8 @@ public:
 	// Set background color
 	void SetBackgroundColor(float r, float g, float b, float a = 1.0f) { backgroundColor = D3DXCOLOR(r, g, b, a); }
 
+	//Check if object is within load chunk
+	int IsWithinLoadChunk(LPGAMEOBJECT obj); //1: in load chunk. -1: out of load chunk. 0: within camera's view
 	static bool IsGameObjectDeleted(const LPGAMEOBJECT& o);
 };
 
