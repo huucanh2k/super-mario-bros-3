@@ -19,7 +19,7 @@ void CFireBullet::Render()
 		animations->Get(aniId)->Render(x, y);
 	}
 
-	RenderBoundingBox();
+	//RenderBoundingBox();
 }
 
 void CFireBullet::SetState(int state) {
@@ -66,6 +66,11 @@ void CFireBullet::SetState(int state) {
 	}
 	
 	CGameObject::SetState(state);
+}
+
+void CFireBullet::Reload()
+{
+	this->Delete();
 }
 
 void CFireBullet::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)

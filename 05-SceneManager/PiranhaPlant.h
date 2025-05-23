@@ -19,15 +19,14 @@
 #define DISTANCE_PIRANHA_NOT_INVOKE 25.5
 
 #define PIRANHA_BBOX_WIDTH 16
-#define PIRANHA_BBOX_HEIGHT 32
+#define PIRANHA_BBOX_HEIGHT 26
 #define PIRANHA_BBOX_HEIGHT_RISE 24
-
 #define PIRANHA_MOVE_SPEED 0.03f
 
 #define PIRANHA_HIDE_TIMEOUT 2500
 #define PIRANHA_SNIP_TIMEOUT 3500
 #define PIRANHA_WAIT_FOR_SHOOT_TIMEOUT 2000
-#define PIRANHA_DIE_TIMEOUT 1500
+#define PIRANHA_DIE_TIMEOUT 205
 
 #pragma region PIRANHA_STATE_ID
 #define PIRANHA_STATE_HIDE 300
@@ -66,7 +65,7 @@ public:
 	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	virtual void Render();
 	virtual int IsCollidable() {
-		if (state == PIRANHA_STATE_DIE)
+		if (state == PIRANHA_STATE_DIE || state == PIRANHA_STATE_HIDE)
 			return 0;
 		return 1;
 	};
@@ -75,7 +74,11 @@ public:
 	void SetState(int state);
 	void Shoot(int direction);
 	bool IsTargetInRange();	
+	virtual void Reload();
+
 	CMario* GetPlayer();
+
 	void OnCollisionWith(LPCOLLISIONEVENT e);
+	void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
 };
 
