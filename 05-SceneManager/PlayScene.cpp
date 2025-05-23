@@ -16,6 +16,8 @@
 #include "Koopa.h"
 #include "RaccoonTail.h"
 #include "Wall.h"
+#include "ShinyBrick.h"
+#include "PSwitch.h"
 #include "WingedGoomba.h"
 
 using namespace std;
@@ -111,6 +113,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	float y = (float)atof(tokens[2].c_str());
 
 	CGameObject *obj = NULL;
+
 	int type = 0;
 
 	switch (object_type)
@@ -128,7 +131,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			player = (CMario*)obj;
 
 			// Create the tail for Mario
-			LPGAMEOBJECT tail = new CRaccoonTail(x, y);
+			LPGAMEOBJECT tail = new CRaccoonTail(x, y + 16.f);
 
 			// Set the tail for Mario
 			dynamic_cast<CMario*>(player)->SetTail(tail);
@@ -157,21 +160,27 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		}
 
 		case OBJECT_TYPE_QUESTION_BRICK:
+		{
 			type = atoi(tokens[3].c_str());
-			obj = new CQuestionBrick(x, y, type);
-			//WARNING: load item you want the quesiton brick to contain first then load the brick
+			int itemType = atoi(tokens[4].c_str());
+			obj = new CQuestionBrick(x, y, type, itemType);
+			break;
+		}
 
-			if (!objects.empty())
-			{
-				((CQuestionBrick*)obj)->SetItem(objects.back());
-				objects.back()->SetActive(false);
-			}
-
+		case OBJECT_TYPE_SHINY_BRICK:
+			type = atoi(tokens[3].c_str());
+			obj = new CShinyBrick(x, y, type);
 			break;
 
 		case OBJECT_TYPE_COIN: obj = new CCoin(x, y); break;
 
 		case OBJECT_TYPE_POWER_UP: obj = new CPowerUp(x, y); break;
+
+		case OBJECT_TYPE_PSWTICH:
+		{
+			obj = new CPSwitch(x, y);
+			break;
+		}
 
 		case OBJECT_TYPE_PLATFORM:
 		{
@@ -236,12 +245,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 				cell_width, cell_height, height,
 				sprite_tl, sprite_tr, sprite_bl, sprite_br
 			);
-
-			/*if (!objects.empty())
-			{
-				dynamic_cast<CPipe*>(obj)->SetItem(objects.back());
-				objects.back()->SetActive(false);
-			}*/
 			break;
 		}
 
@@ -265,18 +268,6 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			}
 
 			obj = new CSceneryObject(x, y, length, width, cellWidth, cellHeight, spriteIDs);
-
-			//DebugOut(L"Loaded Tussock with spriteIDs:\n");
-			//for (size_t i = 0; i < spriteIDs.size(); i++) {
-			//	for (size_t j = 0; j < spriteIDs[i].size(); j++) {
-			//		DebugOut(L"%d ", spriteIDs[i][j]);
-			//	}
-			//	DebugOut(L"\n"); // New line after each row
-			//}
-			/*CGame* game = CGame::GetInstance();
-			DebugOut(L"BackBufferWidth: %d\n", game->GetBackBufferWidth());
-			DebugOut(L"BackBufferHeight: %d\n", game->GetBackBufferHeight());*/
-
 			break;
 		}
 
@@ -295,6 +286,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		case OBJECT_TYPE_WINGED_GOOMBA:
 		{
 			obj = new CWingedGoomba(x, y);
+			DebugOut(L"Loaded Winged Goomba\n");
 			break;
 		}
 
@@ -404,20 +396,75 @@ void CPlayScene::Load()
 
 	f.close();
 
+	// Initialize camera position to ensure Mario is loaded correctly on the first frame
+	if (player) {
+		float marioX, marioY;
+		player->GetPosition(marioX, marioY);
+
+		CGame* game = CGame::GetInstance();
+		float camX, camY;
+
+		// Center camera on Mario 
+		camX = marioX - game->GetBackBufferWidth() / 2.0f;
+		camY = marioY - game->GetBackBufferHeight() / 2.0f;
+
+		float gameWidth = game->GetBackBufferWidth();
+
+		if (camX < 0.0f) {
+			camX = 0.0f;
+		}
+		else {
+			if (rightBoundary > 0) {
+				float upperXLimit = rightBoundary - gameWidth - 9.0f;
+
+				if (upperXLimit < 0.0f) upperXLimit = 0.0f;
+
+				if (camX > upperXLimit) {
+					camX = upperXLimit;
+				}
+			}
+		}
+
+		if (camY < 0.0f) {
+			camY = 0.0f;
+		}
+		else {
+
+			if (bottomBoundary > 0) { 
+				if (camY > bottomBoundary) {
+					camY = bottomBoundary;
+				}
+			}
+		}
+
+		CGame::GetInstance()->SetCamPos(camX, camY);
+	}
 	DebugOut(L"[INFO] Done loading scene  %s\n", sceneFilePath);
 }
 
 void CPlayScene::Update(DWORD dt)
 {
-	// We know that Mario is the first object in the list hence we won't add him into the colliable object list
-	// TO-DO: This is a "dirty" way, need a more organized way 
+	for (size_t i = 0; i < objects.size(); i++)
+	{
+		if (objects[i] == player)
+			continue;
 
-	//I just added mario to collision list so mario would collide correctly with other objects
-	//CGame* game = CGame::GetInstance();
+		if (IsWithinLoadChunk(objects[i]) == -1)
+		{
+			objects[i]->Reload();
+			objects[i]->SetActive(false);
+		}
+		else if (IsWithinLoadChunk(objects[i]) == 1)
+		{
+			objects[i]->SetActive(true);
+		}
+	}
 
 	vector<LPGAMEOBJECT> coObjects;
 	for (size_t i = 0; i < objects.size(); i++)
 	{
+		if (!objects[i]->IsActive()) continue;
+		if (!objects[i]->IsCollidable()) continue;
 		coObjects.push_back(objects[i]);
 	}
 
@@ -429,52 +476,7 @@ void CPlayScene::Update(DWORD dt)
 
 	if(player) HUD->Update(dt);
 
-	// skip the rest if scene was already unloaded (Mario::Update might trigger PlayScene::Unload)
-	//if (player == NULL) return; 
-
-	//// Update camera to follow mario
-	//float cx, cy;
-	//player->GetPosition(cx, cy);
-
-	//// Get camera position
-	//float camX, camY;
-	//game->GetCamPos(camX, camY);
-
-	//// Map size
-	//float mapWidth = 2816.0f;
-	//float mapHeight = 432.0f;
-
-	//// Define margin boundaries    
-	//float marginX = 80.0f; // Horizontal margin    
-	//float marginY = 40.0f;  // Vertical margin  
-
-	//// Only move camera if Mario pushes outside the margin
-	//if (cx > camX + game->GetBackBufferWidth() - marginX)
-	//	camX = cx - (game->GetBackBufferWidth() - marginX);
-	//else if (cx < camX + marginX)
-	//	camX = cx - marginX;
-
-	//if (cy > camY + game->GetBackBufferHeight() - marginY)
-	//	camY = cy - (game->GetBackBufferHeight() - marginY);
-	//else if (cy < camY + marginY)
-	//	camY = cy - marginY;
-
-	//if (camX < -8)
-	//	camX = -8;
-	//if (camX > mapWidth - game->GetBackBufferWidth() - 8)
-	//	camX = mapWidth - game->GetBackBufferWidth();
-	//if (camY < 0)
-	//	camY = 0;
-	//if (camY > mapHeight - game->GetBackBufferHeight() - 9)
-	//	camY = mapHeight - game->GetBackBufferHeight() - 9;
-
-	//game->SetCamPos(camX, camY);
-
-	//// Purged deleted objects
-	//PurgeDeletedObjects();
-	// skip the rest if scene was already unloaded (Mario::Update might trigger PlayScene::Unload)
 	if (player == NULL) return;
-
 	// Update camera to follow mario
 	float cx, cy;
 	player->GetPosition(cx, cy);
@@ -526,7 +528,6 @@ void CPlayScene::Render()
 	ID3D10Device* pD3DDevice = game->GetDirect3DDevice();
 	ID3D10RenderTargetView* pRTV = game->GetRenderTargetView();
 
-	// Clear the back buffer with the background color
 	pD3DDevice->ClearRenderTargetView(pRTV, backgroundColor);
 
 	// Render all game objects
@@ -572,6 +573,34 @@ void CPlayScene::Unload()
 	}
 
 	DebugOut(L"[INFO] Scene %d unloaded! \n", id);
+}
+
+int CPlayScene::IsWithinLoadChunk(LPGAMEOBJECT obj)
+{
+	CGame* game = CGame::GetInstance();
+	float sceneWidth = game->GetBackBufferWidth();
+	float sceneHeight = game->GetBackBufferHeight();
+
+	float leftBound, topBound, rightBound, bottomBound;
+	obj->GetBoundingBox(leftBound, topBound, rightBound, bottomBound);
+	
+	float camx, camy;
+	game->GetCamPos(camx, camy);
+
+	//if ((rightBound >= camx && leftBound <= camx + sceneWidth) &&
+	//	(bottomBound >= camy && topBound <= camy + sceneHeight))
+	//	return TRUE;
+	//else
+	//	return FALSE;
+
+	if (rightBound <= camx - LOAD_CHUNK_WIDTH || leftBound >= camx + sceneWidth + LOAD_CHUNK_WIDTH ||
+		bottomBound <= camy - LOAD_CHUNK_HEIGHT || topBound >= camy + sceneHeight + LOAD_CHUNK_HEIGHT)
+		return -1;
+	else if (rightBound >= camx && leftBound <= camx + sceneWidth &&
+			 bottomBound >= camy && topBound <= camy + sceneHeight)
+		return 0;
+	else
+		return 1;
 }
 
 bool CPlayScene::IsGameObjectDeleted(const LPGAMEOBJECT& o) { return o == NULL; }
