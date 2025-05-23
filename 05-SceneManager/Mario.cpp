@@ -11,6 +11,7 @@
 #include "PiranhaPlant.h"
 #include "Koopa.h"
 #include "WingedGoomba.h"
+#include "WingedKoopa.h"
 
 #include "Collision.h"
 
@@ -228,6 +229,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 	{
 		OnCollisionWithWingedGoomba(e);
 	}
+	else if (dynamic_cast<CWingedKoopa*>(e->obj))
+	{
+		OnCollisionWithWingedKoopa(e);
+	}
 }
 
 void CMario::OnCollisionWithBrick(LPCOLLISIONEVENT e)
@@ -389,6 +394,81 @@ void CMario::OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e) {
 			&& wingedGoomba->GetState() != GOOMBA_WING_STATE_DIE_REVERSE)
 			GetHurt();
 	}
+}
+
+void CMario::OnCollisionWithWingedKoopa(LPCOLLISIONEVENT e)
+{
+    CWingedKoopa* wingedKoopa = dynamic_cast<CWingedKoopa*>(e->obj);
+
+    // Jump on top of the Koopa - either removing wings or turning into shell
+    if (e->ny < 0)
+    {
+        vy = -MARIO_JUMP_DEFLECT_SPEED;
+        
+        // Handle different states of the WingedKoopa
+        if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_WALKING ||
+            wingedKoopa->GetState() == WINGED_KOOPA_STATE_JUMPING ||
+            wingedKoopa->GetState() == WINGED_KOOPA_STATE_FALLING ||
+            wingedKoopa->GetState() == WINGED_KOOPA_STATE_FLYING_UP ||
+            wingedKoopa->GetState() == WINGED_KOOPA_STATE_FLYING_DOWN)
+        {
+            // First hit on a flying koopa - turn it into shell
+            wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL);
+            AddPoint(100, e);
+            DebugOut(L"[INFO] Mario jumped on Winged Koopa, turned to shell\n");
+        }
+        else if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_HOLD)
+        {
+            // Kick the shell
+            wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL_MOVING);
+            // Set direction based on Mario's facing direction
+            wingedKoopa->SetSpeed(nx * WINGED_KOOPA_SHELL_MOVING_SPEED, 0);
+            AddPoint(100, e);
+            DebugOut(L"[INFO] Mario jumped on Koopa shell, started moving\n");
+        }
+        else if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_MOVING)
+        {
+            // Stop a moving shell
+            wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL);
+            wingedKoopa->SetSpeed(0, 0);
+            DebugOut(L"[INFO] Mario jumped on moving Koopa shell, stopped it\n");
+        }
+    }
+    else // Collision from sides or below
+    {
+        if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL ||
+            wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_HOLD)
+        {
+            if (isAbleToHold) // If Mario can hold, pick up the shell
+            {
+                wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL_HOLD);
+                wingedKoopa->SetIsHeld(true);
+                SetIsHolding(true);
+                SetIsHoldingShell(true);
+                DebugOut(L"[INFO] Mario picked up Koopa shell\n");
+            }
+            else // Otherwise kick it
+            {
+                isKicking = true;
+                kick_start = GetTickCount64();
+                wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL_MOVING);
+                wingedKoopa->SetSpeed(nx * WINGED_KOOPA_SHELL_MOVING_SPEED, 0);
+                DebugOut(L"[INFO] Mario kicked Koopa shell\n");
+            }
+        }
+        else if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_WALKING ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_JUMPING ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_FALLING ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_FLYING_UP ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_FLYING_DOWN ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_MOVING)
+        {
+            // Hit by a koopa or a moving shell - get hurt
+            GetHurt();
+            DebugOut(L"[INFO] Mario got hurt by Winged Koopa\n");
+        }
+    }
 }
 
 //
