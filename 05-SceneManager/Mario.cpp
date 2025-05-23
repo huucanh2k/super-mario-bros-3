@@ -91,7 +91,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	CPlayScene* playScene = dynamic_cast<CPlayScene*>(CGame::GetInstance()->GetCurrentScene());
 	playScene->GetBoundary(rightBoundary, bottomBoundary);
 
-	if (x > rightBoundary - MARIO_BIG_BBOX_WIDTH - 8.f) x = rightBoundary - MARIO_BIG_BBOX_WIDTH - 8.f;
+	if (x > rightBoundary - MARIO_BIG_BBOX_WIDTH - 8.f) { x = rightBoundary - MARIO_BIG_BBOX_WIDTH - 8.f; vx = 0; }
 
 	//Handle Koopa Picking and Kicking
 	if (Koopa)
@@ -101,7 +101,6 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		else
 			Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 7.f, y - 3.f);
 		Koopa->SetSpeed(0, 0);
-
 		//If koopa is out of shell while mario is still holding it, mario is hurt
 		if (Koopa->GetState() == KOOPA_STATE_WALKING_LEFT ||
 			Koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
