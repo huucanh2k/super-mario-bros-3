@@ -142,7 +142,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		}
 	}
 
-	DebugOut(L"Is On Platform: %d\n", isOnPlatform);
+	// DebugOut(L"Is On Platform: %d\n", isOnPlatform);
 }
 
 void CMario::AddPoint(int p, LPCOLLISIONEVENT e)
@@ -418,7 +418,8 @@ void CMario::OnCollisionWithWingedKoopa(LPCOLLISIONEVENT e)
             DebugOut(L"[INFO] Mario jumped on Winged Koopa, turned to shell\n");
         }
         else if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL ||
-                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_HOLD)
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_HOLD ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_SHAKING)
         {
             // Kick the shell
             wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL_MOVING);
@@ -438,15 +439,12 @@ void CMario::OnCollisionWithWingedKoopa(LPCOLLISIONEVENT e)
     else // Collision from sides or below
     {
         if (wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL ||
-            wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_HOLD)
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_HOLD ||
+                 wingedKoopa->GetState() == WINGED_KOOPA_STATE_SHELL_SHAKING)
         {
             if (isAbleToHold) // If Mario can hold, pick up the shell
             {
-                wingedKoopa->SetState(WINGED_KOOPA_STATE_SHELL_HOLD);
-                wingedKoopa->SetIsHeld(true);
-                SetIsHolding(true);
-                SetIsHoldingShell(true);
-                DebugOut(L"[INFO] Mario picked up Koopa shell\n");
+                this->Koopa = e->obj;
             }
             else // Otherwise kick it
             {

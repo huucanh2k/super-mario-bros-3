@@ -6,6 +6,7 @@
 #define WINGED_KOOPA_GRAVITY 0.002f
 #define WINGED_KOOPA_WALKING_SPEED 0.05f
 #define WINGED_KOOPA_SHELL_MOVING_SPEED 0.2f
+#define WINGED_KOOPA_JUMP_SPEED 0.1f
 
 // Define models
 #define WINGED_KOOPA_MODEL_GREEN 0
@@ -22,7 +23,8 @@
 // Timeouts
 #define WINGED_KOOPA_DIE_TIMEOUT 500
 #define WINGED_KOOPA_SHELL_TIMEOUT 6000
-#define WINGED_KOOPA_JUMP_TIMEOUT 700
+#define WINGED_KOOPA_SHELL_SHAKING_TIMEOUT 2000
+#define WINGED_KOOPA_JUMP_TIMEOUT 500
 
 // Vertical flying limits for Red Koopa Paratroopa
 #define KOOPA_RED_PARATROOPA_FLY_HEIGHT_MAX 32.0f
@@ -30,8 +32,9 @@
 #define KOOPA_RED_PARATROOPA_FLY_SPEED 0.08f
 
 // Jump speed for Green Koopa Paratroopa
-#define KOOPA_GREEN_PARATROOPA_JUMP_SPEED 0.35f
-#define KOOPA_GREEN_PARATROOPA_HOP_SPEED 0.2f
+#define KOOPA_GREEN_PARATROOPA_JUMP_SPEED 0.05f
+#define KOOPA_GREEN_PARATROOPA_FALL_SPEED 0.05f
+#define KOOPA_GREEN_PARATROOPA_JUMP_HEIGHT 60.0f // Maximum height for green paratroopa jumps
 
 // States
 #define WINGED_KOOPA_STATE_WALKING 100
@@ -43,19 +46,21 @@
 #define WINGED_KOOPA_STATE_SHELL_HOLD 700
 #define WINGED_KOOPA_STATE_FLYING_UP 800
 #define WINGED_KOOPA_STATE_FLYING_DOWN 900
+#define WINGED_KOOPA_STATE_SHELL_SHAKING 1000
 
 // Animation IDs
-#define ID_ANI_GREEN_PARATROOPA_WINGED_WALKING 6200
-#define ID_ANI_GREEN_PARATROOPA_WINGED_JUMPING 6201
-#define ID_ANI_GREEN_PARATROOPA_WINGED_FALLING 6202
+#define ID_ANI_GREEN_WINGED_KOOPA_WALKING 9000
+#define ID_ANI_GREEN_WINGED_KOOPA_JUMPING 9001
+#define ID_ANI_GREEN_WINGED_KOOPA_FALLING 9002
 
-#define ID_ANI_RED_PARATROOPA_WINGED_FLYING 6250
-#define ID_ANI_RED_PARATROOPA_WINGED_FLYING_DOWN 6251
+#define ID_ANI_RED_WINGED_KOOPA_FLYING 9100
+#define ID_ANI_RED_WINGED_KOOPA_FLYING_DOWN 9101
 
-#define ID_ANI_WINGED_KOOPA_WALKING 6300
-#define ID_ANI_WINGED_KOOPA_SHELL 6301
-#define ID_ANI_WINGED_KOOPA_SHELL_MOVING 6302
-#define ID_ANI_WINGED_KOOPA_DIE 6303
+#define ID_ANI_WINGED_KOOPA_WALKING 9200
+#define ID_ANI_WINGED_KOOPA_SHELL 9201
+#define ID_ANI_WINGED_KOOPA_SHELL_MOVING 9202
+#define ID_ANI_WINGED_KOOPA_DIE 9203
+#define ID_ANI_WINGED_KOOPA_SHELL_SHAKING 9204
 
 class CWingedKoopa : public CGameObject
 {
@@ -66,10 +71,12 @@ protected:
     ULONGLONG jump_start;
     ULONGLONG die_start;
     ULONGLONG shell_start;
+    ULONGLONG stateShakingStart;
     
     int model;
     bool isOnPlatform;
     bool isWinged;
+    bool isHeld;  // Flag to check if the Koopa is held by Mario
     float startY;  // Starting Y position for red paratroopa to maintain vertical limits
     int hopCount;  // Counter for green paratroopa hop pattern
 
@@ -88,9 +95,10 @@ protected:
 public:
     CWingedKoopa(float x, float y, int model);
     virtual void SetState(int state);
+    bool SetIsHeld(bool isHeld) { this->isHeld = isHeld; }
+    bool GetIsHeld() { return isHeld; }
     bool GetIsWinged() { return isWinged; }
     void SetIsWinged(bool winged) { isWinged = winged; }
     int GetModel() { return model; }
 
-    int LeftOrRightMarrio();
 };
