@@ -2,11 +2,14 @@
 #include "GameObject.h"
 #include "Particle.h"
 
+#define RACCOON_TAIL_BBOX_WIDTH 10.f
+#define RACCOON_TAIL_BBOX_HEIGHT 16
+
 #define RACCOON_TAIL_STATE_INACTIVE 200
 #define RACCOON_TAIL_STATE_ACTIVE 100
 
-#define RACCOON_TAIL_SPEED 0.20f 
-#define RACCOON_TAIL_RANGE 20.0f
+#define RACCOON_TAIL_SPEED 0.30f 
+#define RACCOON_TAIL_RANGE 18.0f
 
 class CRaccoonTail : public CGameObject
 {
@@ -30,11 +33,14 @@ public:
 
     void OnCollisionWith(LPCOLLISIONEVENT e) override;
     void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
+	void OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e);
     void OnCollisionWithQuestionBrick(LPCOLLISIONEVENT e);
+	void OnCollisionWithShinyBrick(LPCOLLISIONEVENT e);
     void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
     void OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e);
 
     int IsCollidable() { return 1; }
     int IsBlocking() { return 0; }
+	int IsTangible() { return 1; }
     //ool IsActive() { return isActive; }
 };

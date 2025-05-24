@@ -259,7 +259,7 @@ void CCollision::Process(LPGAMEOBJECT objSrc, DWORD dt, vector<LPGAMEOBJECT>* co
 		dx = vx * dt;
 		dy = vy * dt;
 
-		if (colX != NULL && colY != NULL)
+		if (colX != NULL && colY != NULL && objSrc->IsTangible())
 		{
 			if (colY->t < colX->t)	// was collision on Y first ?
 			{
@@ -329,14 +329,14 @@ void CCollision::Process(LPGAMEOBJECT objSrc, DWORD dt, vector<LPGAMEOBJECT>* co
 			}
 		}
 		else
-			if (colX != NULL)
+			if (colX != NULL && objSrc->IsTangible())
 			{
 				x += colX->t * dx + colX->nx * BLOCK_PUSH_FACTOR;
 				y += dy;
 				objSrc->OnCollisionWith(colX);
 			}
 			else
-				if (colY != NULL)
+				if (colY != NULL && objSrc->IsTangible())
 				{
 					x += dx;
 					y += colY->t * dy + colY->ny * BLOCK_PUSH_FACTOR;
@@ -352,13 +352,14 @@ void CCollision::Process(LPGAMEOBJECT objSrc, DWORD dt, vector<LPGAMEOBJECT>* co
 	}
 
 	//
-	// Scan all non-blocking collisions for further collision logic
+	// Scan all collisions for further collision logic
 	//
 	for (UINT i = 0; i < coEvents.size(); i++)
 	{
 		LPCOLLISIONEVENT e = coEvents[i];
 		if (e->isDeleted) continue;
-		if (e->obj->IsBlocking()) continue;  // blocking collisions were handled already, skip them
+		// ignore collision with blocking objects and non-tangible objects
+		if (e->obj->IsBlocking() && !objSrc->IsTangible()) continue;	
 
 		objSrc->OnCollisionWith(e);
 	}
