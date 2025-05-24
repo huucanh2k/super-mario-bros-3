@@ -18,6 +18,15 @@ CGameObject::CGameObject()
 	isActive = true;
 }
 
+void CGameObject::Reload()
+{
+	this->x = loadX;
+	this->y = loadY;
+	this->vx = 0;
+	this->vy = 0;
+
+}
+
 void CGameObject::RenderBoundingBox()
 {
 	D3DXVECTOR3 p(x, y, 0);
@@ -37,15 +46,6 @@ void CGameObject::RenderBoundingBox()
 	CGame::GetInstance()->GetCamPos(cx, cy);
 
 	CGame::GetInstance()->Draw(x - cx, y - cy, bbox, &rect, BBOX_ALPHA);
-}
-
-void CGameObject::Reload()
-{
-	this->x = loadX;
-	this->y = loadY;
-	this->vx = 0;
-	this->vy = 0;
-
 }
 
 CGameObject::~CGameObject()
