@@ -35,11 +35,12 @@ void CSampleKeyHandler::OnKeyDown(int KeyCode)
             if (mario->IsOnPlatform()) // If on ground, do a normal jump
             {
                 mario->SetState(MARIO_STATE_JUMP);
+                if (mario->IsAbleToFly())
+					mario->StartFlying();
             }
             else // If already in air
             {
-                //if mario is at max speed or is already flying keep flying
-                if (fabs(mario->GetVx()) >= MARIO_RUNNING_SPEED|| (mario->IsInAir() && mario->GetVy() < 0))
+                if (mario->IsAbleToFly())
                     mario->SetState(MARIO_STATE_FLYING);
                 else
                     mario->SetState(MARIO_STATE_SLOW_FALL);
@@ -51,7 +52,7 @@ void CSampleKeyHandler::OnKeyDown(int KeyCode)
         }
         break;
     case DIK_A:
-        if (mario->GetLevel() == MARIO_LEVEL_RACCOON && !mario->IsTailAttacking())
+        if (mario->GetLevel() == MARIO_LEVEL_RACCOON && !mario->IsTailAttacking() && !mario->IsSitting())
             mario->SetState(MARIO_STATE_TAIL_ATTACK);
 		mario->SetState(MARIO_STATE_HOLD);
         break;
@@ -64,8 +65,8 @@ void CSampleKeyHandler::OnKeyDown(int KeyCode)
 	case DIK_3:
 		mario->SetLevel(MARIO_LEVEL_RACCOON);
 		break;
-    case DIK_R: // reset
-        //Reload();
+    case DIK_R: //reload scene
+        game->ReloadCurrentScene();
         break;
     }
 }
