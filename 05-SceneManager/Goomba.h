@@ -15,12 +15,14 @@
 #define GOOMBA_BBOX_HEIGHT_DIE 7
 
 #define GOOMBA_DIE_TIMEOUT 500
-#define GOOMBA_DIE_REVERSE_TIMEOUT 1500
+#define GOOMBA_DIE_REVERSE_TIMEOUT 500
 
+#pragma region BASE_GOOMBA
 #define GOOMBA_STATE_RISE 100
 #define GOOMBA_STATE_WALKING 110
 #define GOOMBA_STATE_DIE 200
 #define GOOMBA_STATE_DIE_REVERSE 201
+#pragma endregion
 
 #define GOOMBA_TEXTURE_IDLE 31001
 
@@ -31,31 +33,34 @@
 class CGoomba : public CGameObject
 {
 protected:
-	float ax;				
-	float ay; 
+	float ax;
+	float ay;
 
 	int originalY;
 
 	//Need to create an enemy class and implement this instead of just goomba
-	int currentAniId = GOOMBA_TEXTURE_IDLE; 
+	int currentAniId = GOOMBA_TEXTURE_IDLE;
 
 	ULONGLONG die_start;
+public:
+	CGoomba(float x, float y);
 
-	virtual void GetBoundingBox(float &left, float &top, float &right, float &bottom);
-	virtual void Update(DWORD dt, vector<LPGAMEOBJECT> *coObjects);
-	virtual void Render();
+	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
+	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
+	void Render();
+	virtual void Reload();
 
-	virtual int IsCollidable() { 
+	int IsCollidable() {
 		if (state == GOOMBA_STATE_DIE_REVERSE
 			|| state == GOOMBA_STATE_DIE)
 			return 0;
 		return 1;
 	};
-	virtual int IsBlocking() { return 0; }
-	virtual void OnNoCollision(DWORD dt);
+	int IsBlocking() { return 0; }
+	void OnNoCollision(DWORD dt);
 
-	virtual void OnCollisionWith(LPCOLLISIONEVENT e);
-public: 	
-	CGoomba(float x, float y);
-	virtual void SetState(int state);
+	void OnCollisionWith(LPCOLLISIONEVENT e);
+	void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
+	void SetState(int state);
+	CMario* GetPlayer();
 };
