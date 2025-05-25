@@ -196,6 +196,9 @@
 #define MARIO_UNTOUCHABLE_TIME 2500
 #define MARIO_TAIL_ATTACK_TIME 250
 #define MARIO_KICK_TIME 250
+#define MARIO_FLYING_TIME 4000
+
+#define MARIO_P_METER_MAX 600
 
 class CMario : public CGameObject
 {
@@ -218,7 +221,7 @@ class CMario : public CGameObject
 
 	BOOLEAN isOnPlatform;
 	BOOLEAN isInAir;	//If Raccoon mario is flying or floating this should be true
-	BOOLEAN isKicking; 
+	BOOLEAN isKicking;
 
 	BOOLEAN isTailAttacking; //If Raccoon mario is using tail attack this should be true
 	LPGAMEOBJECT Tail; // Raccoon tail object
@@ -229,6 +232,12 @@ class CMario : public CGameObject
 	LPGAMEOBJECT Koopa; // Koopa object that Mario is holding
 
 
+	BOOLEAN isAbleToFly; //If player is running at max speed this should be true
+	ULONGLONG flying_start; // Time when Mario started flying
+
+	int pMeter;
+
+
 	//Tracking point and coin
 	int coin;
 	int point;
@@ -237,11 +246,13 @@ class CMario : public CGameObject
 	void OnCollisionWithCoin(LPCOLLISIONEVENT e);
 	void OnCollisionWithPortal(LPCOLLISIONEVENT e);
 	void OnCollisionWithQuestionBrick(LPCOLLISIONEVENT e);
+	void OnCollisionWithShinyBrick(LPCOLLISIONEVENT e);
 	void OnCollisionWithBrick(LPCOLLISIONEVENT e);
 	void OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e);
 	void OnCollisionWithPowerUp(LPCOLLISIONEVENT e);
 	void OnCollisionWithBullet(LPCOLLISIONEVENT e);
 	void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
+	void OnCollisionWithPSwitch(LPCOLLISIONEVENT e);
 	void OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e);
 
 	int GetAniIdBig();
@@ -266,6 +277,7 @@ public:
 		slowfall_start = -1;
 		tailAttack_start = -1;
 		kick_start = 1;
+		flying_start = -1;
 
 		isSitting = false;
 		isOnPlatform = false;
@@ -273,15 +285,23 @@ public:
 		isTailAttacking = false;
 		isAbleToHold = false;
 		isKicking = false;
+		isAbleToFly = false;
 
 		Tail = NULL;
 		currentFloorY = GROUND_Y; // Initialize to ground level
 
 		Koopa = NULL;
 
+		pMeter = 0;
 		coin = 0;
 		point = 0;
 	}
+	void StartFlying() 
+	{ 
+		if (!flying_start)
+			flying_start = GetTickCount64(); 
+	}
+
 	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
 	void Render();
 	void SetState(int state);
@@ -291,21 +311,24 @@ public:
 	float GetAx() { return ax; }
 	int GetCoin() { return coin; }
 	int GetPoint() { return point; }
+	float GetPMeter() { return pMeter; }
 	int GetLevel() { return level; }
 
-	int IsCollidable()
-	{
-		return (state != MARIO_STATE_DIE);
-	}
+	int IsCollidable() { return (state != MARIO_STATE_DIE); }
 
-	int IsBlocking() { return (state != MARIO_STATE_DIE && untouchable == 0); }
+	int IsBlocking() {
+		return 0;
+	}
 
 	BOOLEAN IsOnPlatform() { return isOnPlatform; }
 	BOOLEAN IsInAir() { return isInAir; }
 	BOOLEAN IsTailAttacking() { return isTailAttacking; }
+	BOOLEAN IsAbleToFly() { return isAbleToFly; }
+	BOOLEAN IsHoldingKoopa() { return isAbleToHold; }
+	BOOLEAN IsSitting() { return isSitting;  }
 
 	//Update coin and point
-	void AddCoin() { coin++;}
+	void AddCoin() { coin++; }
 	void AddPoint(int p, LPCOLLISIONEVENT e = NULL);
 
 	bool GetIsRunning() { return isRunning; }
@@ -317,8 +340,15 @@ public:
 	void SetTail(LPGAMEOBJECT tail) { this->Tail = tail; }
 	void GetHurt();
 
-	void StartUntouchable() { untouchable = 1; untouchable_start = GetTickCount64(); }
-	void StartTailAttack() { isTailAttacking = true; tailAttack_start = GetTickCount64(); }
+	void StartUntouchable() {
+		untouchable = 1;
+		untouchable_start = GetTickCount64();
+	}
+
+	void StartTailAttack() {
+		isTailAttacking = true;
+		tailAttack_start = GetTickCount64();
+	}
 
 	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
 

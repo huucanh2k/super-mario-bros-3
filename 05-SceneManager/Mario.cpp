@@ -5,12 +5,14 @@
 #include "Game.h"
 
 #include "Goomba.h"
+#include "WingedGoomba.h"
 #include "Coin.h"
 #include "Portal.h"
 #include "QuestionBrick.h"
+#include "ShinyBrick.h"
 #include "PiranhaPlant.h"
 #include "Koopa.h"
-#include "WingedGoomba.h"
+#include "PSwitch.h"
 
 #include "Collision.h"
 
@@ -26,7 +28,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	if (vy > maxVy) vy = maxVy;
 
 	//Calcute vx like this so it wont get change abruptly
-	if (abs(vx) > abs(maxVx)) {
+	if (fabs(vx) > fabs(maxVx)) {
 		if (vx < 0 && ax > 0 || vx > 0 && ax < 0)
 			vx += ax * dt;
 		else
@@ -49,13 +51,22 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 	ULONGLONG now = GetTickCount64();
 
-	// reset untouchable timer if untouchable time has passed
-	if ((now - slowfall_start > MARIO_SLOW_FALL_DURATION) || vy == 0)
+	//make sure gravity isnt apply immediately if mario is floating or flying in raccoon form
+	if ((now - slowfall_start > MARIO_SLOW_FALL_DURATION || vy == 0)) //might cause problem for flying
 	{
 		//DebugOut(L"Time Out\n");
 		slowfall_start = 0;
 		maxVy = MARIO_MAX_FALL_SPEED; // Reset max fall speed to default
 		isInAir = false; // Reset isInAir to false
+	}
+
+	//Check flying time
+	if (flying_start && now - flying_start > MARIO_FLYING_TIME)
+	{
+		//DebugOut(L"Flying Time Out\n");
+		flying_start = 0;
+		pMeter = 0;
+		isAbleToFly = false; // Reset flying ability
 	}
 
 	// reset untouchable timer if untouchable time has passed
@@ -71,6 +82,10 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	{
 		tailAttack_start = 0;
 		isTailAttacking = false;
+		Tail->SetActive(false); // Deactivate the tail after the attack animation
+		CAnimations* animations = CAnimations::GetInstance();
+		animations->Get(ID_ANI_MARIO_RACCOON_TAIL_ATTACK_RIGHT)->Reset();
+		animations->Get(ID_ANI_MARIO_RACCOON_TAIL_ATTACK_LEFT)->Reset();
 	}
 
 	if (now - kick_start > MARIO_KICK_TIME)
@@ -81,9 +96,30 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 
 	CCollision::GetInstance()->Process(this, dt, coObjects);
 
+	if (!flying_start) {
+		if (isOnPlatform && fabs(vx) > MARIO_WALKING_SPEED)
+		{
+			pMeter += 10.f;
+			//cap pmeter
+			if (pMeter > MARIO_P_METER_MAX)
+				pMeter = MARIO_P_METER_MAX;
+		}
+		else
+		{
+			pMeter -= 5.f;
+			if (pMeter < 0)
+				pMeter = 0;
+		}
+	}
+
+	if (pMeter == MARIO_P_METER_MAX)
+		isAbleToFly = true;
+	else
+		isAbleToFly = false;
+
 	//Make sure mario doesnt go out of boundary
-	if (x < 8.f) x = 8.f;
-	if (y < 8.f) y = 8.f;
+	if (x < 8.f) { x = 8.f; vx = 0; }
+	if (y < 8.f) { y = 8.f; vy = 0; }
 
 	float rightBoundary;
 	float bottomBoundary;
@@ -95,6 +131,7 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	//Handle Koopa Picking and Kicking
 	if (Koopa)
 	{
+		//Adjust where koopa sprite is draw to make it look prettier
 		if (level != MARIO_LEVEL_RACCOON)
 			Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 2.f, y - 3.f);
 		else
@@ -120,20 +157,13 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 			{
 				isKicking = true;
 				kick_start = now;
-
-				//If koopa is in a wall and mario is kicking it, mario kill it
-				if (dynamic_cast<CKoopa*>(Koopa)->IsInWall())
-					Koopa->SetState(KOOPA_STATE_DIE);
+				if (Koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
+					Koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
+					Koopa->SetState(KOOPA_STATE_SHELL_MOVE);
 				else
-				{
-					if (Koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-						Koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
-						Koopa->SetState(KOOPA_STATE_SHELL_MOVE);
-					else
-						Koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
-					//Koopa is kicked in the direction mario is looking
-					Koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
-				}
+					Koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
+				//Koopa is kicked in the direction mario is looking
+				Koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
 
 				dynamic_cast<CKoopa*>(Koopa)->SetIsHeld(false);
 				Koopa = NULL;
@@ -141,20 +171,24 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 		}
 	}
 
-	DebugOut(L"Is On Platform: %d\n", isOnPlatform);
+	//Handle Raccoon Tail
+	if (Tail && tailAttack_start)
+	{
+		Tail->SetPosition(x, y + 4.f);
+	}
 }
 
 void CMario::AddPoint(int p, LPCOLLISIONEVENT e)
 {
 	point += p;
-	//Gettiing the position of the object that mario touched to add particle
+	//Get the position of the object that mario touched to add particle
 	if (e != NULL)
 	{
 		CGame* game = CGame::GetInstance();
 		CPlayScene* playScene = dynamic_cast<CPlayScene*>(game->GetCurrentScene());
 		float objX, objY;
 		e->obj->GetPosition(objX, objY);
-		CParticle* particle = new CParticle(objX, objY, PARTICLE_TYPE_POINT);
+		CParticle* particle = new CParticle(objX, objY, PARTICLE_TYPE_POINT, p);
 		playScene->Add(particle);
 	}
 }
@@ -164,7 +198,6 @@ void CMario::OnNoCollision(DWORD dt)
 	x += vx * dt;
 	y += vy * dt;
 }
-
 
 void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 {
@@ -188,7 +221,11 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 		vx = 0;
 	}
 
-	if (dynamic_cast<CQuestionBrick*>(e->obj))
+	if (dynamic_cast<CShinyBrick*>(e->obj))
+	{
+		OnCollisionWithShinyBrick(e);
+	}
+	else if (dynamic_cast<CQuestionBrick*>(e->obj))
 	{
 		OnCollisionWithQuestionBrick(e);
 	}
@@ -224,6 +261,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 	{
 		OnCollisionWithBrick(e);
 	}
+	else if (dynamic_cast<CPSwitch*>(e->obj))
+	{
+		OnCollisionWithPSwitch(e);
+	}
 	else if (dynamic_cast<CWingedGoomba*>(e->obj))
 	{
 		OnCollisionWithWingedGoomba(e);
@@ -240,7 +281,6 @@ void CMario::OnCollisionWithBrick(LPCOLLISIONEVENT e)
 	}
 }
 
-
 void CMario::OnCollisionWithQuestionBrick(LPCOLLISIONEVENT e)
 {
 	CQuestionBrick* questionBrick = dynamic_cast<CQuestionBrick*>(e->obj);
@@ -248,19 +288,41 @@ void CMario::OnCollisionWithQuestionBrick(LPCOLLISIONEVENT e)
 		questionBrick->Activate();
 }
 
+void CMario::OnCollisionWithShinyBrick(LPCOLLISIONEVENT e)
+{
+	CShinyBrick* shinyBrick = dynamic_cast<CShinyBrick*>(e->obj);
+	if (e->ny > 0 && shinyBrick)
+		shinyBrick->Activate();
+}
+
 void CMario::OnCollisionWithPowerUp(LPCOLLISIONEVENT e)
 {
-	if (dynamic_cast<CPowerUp*>(e->obj)->GetType() == POWER_UP_TYPE_LEAF && level != MARIO_LEVEL_RACCOON)
+	if (dynamic_cast<CPowerUp*>(e->obj)->GetType() == POWER_UP_TYPE_LEAF)
 	{
-		SetLevel(MARIO_LEVEL_RACCOON);
+		if(level != MARIO_LEVEL_RACCOON)
+			SetLevel(MARIO_LEVEL_RACCOON);
+		AddPoint(1000, e);
 	}
 	else if (dynamic_cast<CPowerUp*>(e->obj)->GetType() == POWER_UP_TYPE_MUSHROOM && level == MARIO_LEVEL_SMALL)
 	{
 		SetLevel(MARIO_LEVEL_BIG);
+		AddPoint(1000, e);
+	}
+	else if (dynamic_cast<CPowerUp*>(e->obj)->GetType() == POWER_UP_TYPE_1UP_MUSHROOM)
+	{
+		AddPoint(0, e);
 	}
 	e->obj->Delete();
-	AddPoint(1000, e);
+	
+}
 
+void CMario::OnCollisionWithPSwitch(LPCOLLISIONEVENT e)
+{
+	CPSwitch* pSwitch = dynamic_cast<CPSwitch*>(e->obj);
+	if (e->ny < 0 && pSwitch)
+	{
+		pSwitch->Activate();
+	}
 }
 
 void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
@@ -277,90 +339,9 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 			AddPoint(100, e);
 		}
 	}
-	else if (goomba->GetState() != GOOMBA_STATE_DIE)
+	else if (goomba->GetState() != GOOMBA_STATE_DIE && goomba->GetState() != GOOMBA_STATE_DIE_REVERSE)
 	{
 		GetHurt();
-	}
-}
-
-void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
-{
-	DebugOut(L">>> Mario touched coin >>> \n");
-	e->obj->Delete();
-	AddCoin();
-	AddPoint(50, e);
-}
-
-void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
-{
-	CPortal* p = (CPortal*)e->obj;
-	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
-}
-
-void CMario::OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e)
-{
-	GetHurt();
-}
-
-void CMario::OnCollisionWithBullet(LPCOLLISIONEVENT e) {
-	GetHurt();
-}
-
-void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
-
-	CKoopa* koopa = dynamic_cast<CKoopa*>(e->obj);
-
-	if (e->ny < 0) {
-		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
-			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
-			|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
-			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) 
-		{
-			koopa->SetState((koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE)
-				? KOOPA_STATE_SHELL_REVERSE_IDLE
-				: KOOPA_STATE_SHELL_IDLE);
-		}
-		else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-			koopa->GetState() == KOOPA_STATE_SHELL_SHAKING ||
-			koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE ||
-			koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING)
-		{
-			if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-				koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
-				koopa->SetState(KOOPA_STATE_SHELL_MOVE);
-			else
-				koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
-			koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
-		}
-		vy = -MARIO_JUMP_DEFLECT_SPEED;
-		AddPoint(100, e);
-	}
-	else {
-		if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-			koopa->GetState() == KOOPA_STATE_SHELL_SHAKING ||
-			koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE ||
-			koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING) {
-			if (isAbleToHold) { // pick
-				this->Koopa = e->obj;
-			}
-			else { // Kick
-				isKicking = true;
-				kick_start = GetTickCount64();
-				if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-					koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
-					koopa->SetState(KOOPA_STATE_SHELL_MOVE);
-				else
-					koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
-				koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
-			}
-		}
-		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT ||
-			koopa->GetState() == KOOPA_STATE_WALKING_RIGHT ||
-			koopa->GetState() == KOOPA_STATE_SHELL_MOVE ||
-			koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) {
-			Koopa = NULL;
-			GetHurt();
-		}
 	}
 }
 
@@ -387,6 +368,102 @@ void CMario::OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e) {
 	{
 		if (wingedGoomba->GetState() != GOOMBA_WING_STATE_DIE
 			&& wingedGoomba->GetState() != GOOMBA_WING_STATE_DIE_REVERSE)
+			GetHurt();
+	}
+}
+
+void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
+{
+	DebugOut(L">>> Mario touched coin >>> \n");
+	e->obj->Delete();
+	AddCoin();
+	AddPoint(50, e);
+}
+
+void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
+{
+	CPortal* p = (CPortal*)e->obj;
+	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
+}
+
+void CMario::OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e)
+{
+	CPiranhaPlant* piranhaPlant = dynamic_cast<CPiranhaPlant*>(e->obj);
+	if (piranhaPlant) {
+		if (piranhaPlant->GetState() != PIRANHA_STATE_HIDE
+			&& piranhaPlant->GetState() != PIRANHA_STATE_DIE)
+		GetHurt();
+	}
+	
+}
+
+void CMario::OnCollisionWithBullet(LPCOLLISIONEVENT e) {
+	GetHurt();
+}
+
+void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
+
+	CKoopa* koopa = dynamic_cast<CKoopa*>(e->obj);
+
+	if (e->ny < 0) {
+		vy = -MARIO_JUMP_DEFLECT_SPEED;
+		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
+			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
+			|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) {
+			koopa->SetState((koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE)
+				? KOOPA_STATE_SHELL_REVERSE_IDLE
+				: KOOPA_STATE_SHELL_IDLE);
+		}
+		else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING) 
+		{
+			if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
+			 || koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
+				koopa->SetState(KOOPA_STATE_SHELL_MOVE);
+			else
+				koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
+
+			koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
+		}
+		AddPoint(100, e);
+	}
+	else if (e->nx != 0 || e->ny > 0) {
+		if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING) {
+			if (isAbleToHold) 	// Mario picks Koopa
+			{
+				this->Koopa = koopa;
+				koopa->SetIsHeld(true);
+			}
+			else { // Kick
+				isKicking = true;
+				kick_start = GetTickCount64();
+				if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
+					|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
+					koopa->SetState(KOOPA_STATE_SHELL_MOVE);
+				else
+					koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
+				koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
+			}
+		}
+		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
+			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
+			|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) 
+		{
+			Koopa = NULL;
+			GetHurt();
+		}
+	}
+	else 
+	{
+		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
+			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 			GetHurt();
 	}
 }
@@ -622,7 +699,7 @@ int CMario::GetAniIdRaccoon()
 						aniId = ID_ANI_MARIO_RACCOON_RUNNING_HOLDING_RIGHT;
 					else
 						aniId = ID_ANI_MARIO_RACCOON_RUNNING_HOLDING_LEFT;
-				else 
+				else
 					if (nx >= 0)
 						aniId = ID_ANI_MARIO_RACCOON_WALKING_HOLDING_RIGHT;
 					else
@@ -639,7 +716,7 @@ int CMario::GetAniIdRaccoon()
 	}
 	else if (!isOnPlatform)
 	{
-		if (abs(vx) == MARIO_RUNNING_SPEED|| (isInAir && vy < 0))
+		if (abs(vx) == MARIO_RUNNING_SPEED || (isInAir && vy < 0))
 		{
 			if (isInAir)
 				if (nx >= 0)
@@ -729,7 +806,7 @@ void CMario::Render()
 				aniId = ID_ANI_MARIO_CHANGE_LEVEL_RIGHT;
 			else
 				aniId = ID_ANI_MARIO_CHANGE_LEVEL_LEFT;
-		}	
+		}
 	}
 	else if (level == MARIO_LEVEL_BIG)
 		aniId = GetAniIdBig();
@@ -739,7 +816,7 @@ void CMario::Render()
 		aniId = GetAniIdRaccoon();
 	animations->Get(aniId)->Render(x, y);
 
-	//RenderBoundingBox();
+	RenderBoundingBox();
 
 	DebugOutTitle(L"Coins: %d", coin);
 }
@@ -858,16 +935,12 @@ void CMario::SetState(int state)
 		break;
 
 	case MARIO_STATE_FLYING:
-		// Only apply flying if already in the air
-		if (!isOnPlatform)
-		{
-			DebugOut(L"[INFO] Mario flying\n");
-			vy = MARIO_FLYING_SPEED; // Apply upward boost
-			slowfall_start = GetTickCount64();
-			maxVy = MARIO_FLYING_SPEED; // Use flying speed as max speed
-			isInAir = true;
-			ay = 0; // Temporarily remove gravity
-		}
+		DebugOut(L"[INFO] Mario flying\n");
+		vy = MARIO_FLYING_SPEED; // Apply upward boost
+		slowfall_start = GetTickCount64();
+		maxVy = MARIO_FLYING_SPEED; // Use flying speed as max speed
+		isInAir = true;
+		ay = 0; // Temporarily remove gravity
 		break;
 
 	case MARIO_STATE_TAIL_ATTACK:
@@ -967,9 +1040,9 @@ void CMario::GetBoundingBox(float& left, float& top, float& right, float& bottom
 	else
 	{
 		left = x - MARIO_SMALL_BBOX_WIDTH / 2;
-		top = y - MARIO_SMALL_BBOX_HEIGHT / 2;
+		top = y - 2.0f - MARIO_SMALL_BBOX_HEIGHT / 2;
 		right = left + MARIO_SMALL_BBOX_WIDTH;
-		bottom = top + MARIO_SMALL_BBOX_HEIGHT;
+		bottom = top + MARIO_SMALL_BBOX_HEIGHT + 2.0f;
 	}
 }
 
@@ -1007,4 +1080,3 @@ void CMario::GetHurt()
 		}
 	}
 }
-
