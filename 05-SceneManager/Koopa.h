@@ -59,7 +59,6 @@ protected:
 	LPGAMEOBJECT platform;
 
 	bool isHeld;
-	BOOLEAN isInWall;
 public:
 	CKoopa(float x, float y) : CEnemy(x, y)
 	{
@@ -70,7 +69,6 @@ public:
 		stateShakingStart = -1;
 		die_start = -1;
 		isHeld = false;
-		isInWall = false;
 		platform = NULL;
 	}
 
@@ -85,8 +83,6 @@ public:
 
 	int IsBlocking() { return 0; }
 
-	BOOLEAN IsInWall() { return isInWall; }
-
 	void OnNoCollision(DWORD dt);
 	void OnCollisionWith(LPCOLLISIONEVENT e);
 	bool IsOnPlatform();
@@ -94,3 +90,4 @@ public:
 
 	void OnCollisionWithBrick(LPCOLLISIONEVENT e);
 };
+
