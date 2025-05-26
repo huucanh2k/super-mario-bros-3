@@ -139,6 +139,7 @@
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="SceneSweeper.cpp">
+    <ClCompile Include="ParaTroopa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
