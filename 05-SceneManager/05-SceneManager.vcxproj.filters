@@ -269,5 +269,8 @@
     <ClInclude Include="GoalRoulette.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ParaTroopa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
