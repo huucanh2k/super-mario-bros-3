@@ -24,7 +24,7 @@
 
 #define GREEN_PIRANHA_BBOX_WIDTH 16
 #define GREEN_PIRANHA_BBOX_HEIGHT 23
-#define GREEN_PIRANHA_BBOX_HEIGHT_RISE 21
+#define GREEN_PIRANHA_BBOX_HEIGHT_RISE 20
 
 #define PIRANHA_MOVE_SPEED 0.03f
 
@@ -75,15 +75,17 @@ protected:
 public:
 	CPiranhaPlant(float x, float y);
 
-	virtual void GetBoundingBox(float& left, float& top, float& right, float& bottom);
-	virtual void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
-	virtual void Render();
-	virtual int IsCollidable() {
+	void GetBoundingBox(float& left, float& top, float& right, float& bottom);
+	void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects);
+	void Render();
+
+	int IsCollidable() {
 		if (state == PIRANHA_STATE_DIE || state == PIRANHA_STATE_HIDE)
 			return 0;
 		return 1;
 	};
-	virtual int IsBlocking() { return 0; }
+
+	int IsBlocking() { return 0; }
 	int GetSnippingDirection(); // get the direction of the snipping action to mario
 	void SetState(int state);
 	void Shoot(int direction);
