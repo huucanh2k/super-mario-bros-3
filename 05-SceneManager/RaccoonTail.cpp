@@ -2,25 +2,21 @@
 #include "Collision.h"
 #include "Goomba.h" 
 #include "Koopa.h"  
+#include "ParaTroopa.h"
 #include "debug.h" 
 #include "QuestionBrick.h"
 #include "ShinyBrick.h"
 #include "PiranhaPlant.h"
+#include "PlainPiranha.h"
 #include "WingedGoomba.h"
 
 void CRaccoonTail::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
-
-
-	//DebugOut(L"[INFO] Raccoon Tail state: %d\n", state);
-
     CCollision::GetInstance()->Process(this, dt, coObjects);
 }
 
 void CRaccoonTail::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    //if (!IsActive()) return;
-
     CParticle* particle = new CParticle(x, y, PARTICLE_TYPE_HIT);
     CPlayScene* currentScene = dynamic_cast<CPlayScene*>(CGame::GetInstance()->GetCurrentScene());
     CMario* mario = dynamic_cast<CMario*>(currentScene->GetPlayer());
@@ -34,8 +30,17 @@ void CRaccoonTail::OnCollisionWith(LPCOLLISIONEVENT e)
         OnCollisionWithKoopa(e);
         currentScene->Add(particle);
     }
+    else if (dynamic_cast<CParaTroopa*>(e->obj)) {
+        OnCollisionWithParaTroopa(e);
+        currentScene->Add(particle);
+    }
     else if (dynamic_cast<CPiranhaPlant*>(e->obj)) {
         OnCollisionWithPiranhaPlant(e);
+        currentScene->Add(particle);
+        mario->AddPoint(100, e);
+    }
+    else if (dynamic_cast<CPlainPiranha*>(e->obj)) {
+        OnCollisionWithPlainPiranha(e);
         currentScene->Add(particle);
         mario->AddPoint(100, e);
     }
@@ -94,6 +99,15 @@ void CRaccoonTail::OnCollisionWithKoopa(LPCOLLISIONEVENT e)
     SetActive(false);
 }
 
+void CRaccoonTail::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e)
+{
+	//DebugOut(L"[INFO] RaccoonTail hit ParaTroopa\n");
+	CParaTroopa* paraTroopa = dynamic_cast<CParaTroopa*>(e->obj);
+	paraTroopa->SetSpeed(nx * PARATROOPA_SHELL_SPEED / 2, 0); // Set speed for ParaTroopa
+	paraTroopa->SetState(PARATROOPA_STATE_SHELL_REVERSE_JUMP);
+	SetActive(false);
+}
+
 void CRaccoonTail::OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e)
 {
     //DebugOut(L"[INFO] RaccoonTail hit PiranhaPlant\n");
@@ -101,6 +115,12 @@ void CRaccoonTail::OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e)
     piranha->SetState(PIRANHA_STATE_DIE);
 }
 
+void CRaccoonTail::OnCollisionWithPlainPiranha(LPCOLLISIONEVENT e)
+{
+	//DebugOut(L"[INFO] RaccoonTail hit PlainPiranha\n");
+	CPlainPiranha* plainPiranha = dynamic_cast<CPlainPiranha*>(e->obj);
+	plainPiranha->SetState(PLAIN_PIRANHA_STATE_DIE);
+}
 
 void CRaccoonTail::Render()
 {

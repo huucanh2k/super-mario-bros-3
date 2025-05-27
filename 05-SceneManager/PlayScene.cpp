@@ -12,8 +12,10 @@
 #include "SceneryObject.h"
 #include "SampleKeyEventHandler.h"
 #include "PiranhaPlant.h"
+#include "PlainPiranha.h"
 #include "FireBullet.h"
 #include "Koopa.h"
+#include "ParaTroopa.h"
 #include "RaccoonTail.h"
 #include "Wall.h"
 #include "ShinyBrick.h"
@@ -22,13 +24,14 @@
 #include "MovingPlatform.h"
 #include "TunnelBlock.h"
 #include "GoalRoulette.h"
+#include "SceneSweeper.h"
 
 using namespace std;
 
 CPlayScene::CPlayScene(int id, LPCWSTR filePath) :
 	CScene(id, filePath)
 {
-	player = NULL;
+	player = nullptr;
 	key_handler = new CSampleKeyHandler(this);
 	backgroundColor = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f); // Default to black
 	rightBoundary = 0;
@@ -60,7 +63,7 @@ void CPlayScene::_ParseSection_SPRITES(string line)
 	int texID = atoi(tokens[5].c_str());
 
 	LPTEXTURE tex = CTextures::GetInstance()->Get(texID);
-	if (tex == NULL)
+	if (tex == nullptr)
 	{
 		DebugOut(L"[ERROR] Texture ID %d not found!\n", texID);
 		return; 
@@ -115,7 +118,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	float x = (float)atof(tokens[1].c_str());
 	float y = (float)atof(tokens[2].c_str());
 
-	CGameObject *obj = NULL;
+	CGameObject *obj = nullptr;
 
 	int type = 0;
 
@@ -123,7 +126,7 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 	{
 		case OBJECT_TYPE_MARIO:
 		{
-			if (player != NULL)
+			if (player != nullptr)
 			{
 				DebugOut(L"[ERROR] MARIO object was created before!\n");
 				return;
@@ -298,6 +301,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			break;
 		}
 
+		case OBJECT_TYPE_PLAIN_PIRANHA:
+		{
+			obj = new CPlainPiranha(x, y);
+			DebugOut(L"Loaded Plain Piranha\n");
+			break;
+		}
+
 		case OBJECT_TYPE_KOOPA:
 		{
 			obj = new CKoopa(x, y);
@@ -311,12 +321,19 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			break;
 		}
 
+		case OBJECT_TYPE_PARATROOPA:
+		{
+			obj = new CParaTroopa(x, y);
+			DebugOut(L"Loaded Para Troopa\n");
+			break;
+		}
+
 		case OBJECT_TYPE_PORTAL:
 		{
 			int scene_id = atoi(tokens[3].c_str());
 			obj = new CPortal(x, y, scene_id);
+			break;
 		}
-		break;
 
 		case OBJECT_TYPE_TUNNEL_BLOCK:
 		{
@@ -338,6 +355,12 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 		case OBJECT_TYPE_GOAL_ROULETTE:
 		{
 			obj = new CGoalRoulette(x, y);
+			break;
+		}
+
+		case OBJECT_TYPE_SCENE_SWEEPER:
+		{
+			obj = new CSceneSweeper(x, y);
 			break;
 		}
 
@@ -501,7 +524,7 @@ void CPlayScene::Update(DWORD dt)
 			if (objects[i]->IsActive())
 			{
 				objects[i]->Reload();
-				objects[i]->SetActive(false);\
+				objects[i]->SetActive(false);
 			}
 		}
 		else if (chunkStatus == 1) // Object is in the load chunk (but not fully on-screen yet)
@@ -530,27 +553,32 @@ void CPlayScene::Update(DWORD dt)
 
 	if(player) HUD->Update(dt);
 
-	if (player == NULL) return;
+	if (player == nullptr) return;
 	// Update camera to follow mario
 	float cx, cy;
 	player->GetPosition(cx, cy);
 
 	CGame* game = CGame::GetInstance();
+	float camX, camY;
+	game->GetCamPos(camX, camY);
 
 	// Get Mario's vertical velocity to check if he's flying
 	float vy = ((CMario*)player)->GetVy();
 	CMario* mario = (CMario*)player;
 
 	// Follow on X axis
-	cx -= game->GetBackBufferWidth() / 2;
-
-	float marioX, marioY;
-	mario->GetPosition(marioX, marioY);
+	if (isCameraFollowMarioX)
+		cx -= game->GetBackBufferWidth() / 2;
+	else
+	{
+		isCameraFollowMarioX = true;
+		cx = camX;
+	}
 
 	// If mario is flying then switch camera to follow him on y axis else keep it fixed
-	if (mario->IsInAir() && vy < 0 || marioY < 200.f)
+	if (mario->IsInAir() && vy < 0)
 		isCameraFollowMarioY = true;
-	else if (mario->IsOnPlatform() && marioY >= 340.f)
+	else if (mario->IsOnPlatform() && cy >= 340.f)
 		isCameraFollowMarioY = false;
 
 	//Make camera follow Mario vertically when flying
@@ -570,7 +598,7 @@ void CPlayScene::Update(DWORD dt)
 	if (cy < 0) cy = 0;
 	else if (cy > bottomBoundary) cy = bottomBoundary;
 
-	CGame::GetInstance()->SetCamPos(cx, cy);
+	game->SetCamPos(cx, cy);
 
 	PurgeDeletedObjects();
 }
@@ -619,7 +647,7 @@ void CPlayScene::Unload()
 		delete objects[i];
 
 	objects.clear();
-	player = NULL;
+	player = nullptr;
 
 	if (HUD) {
 		delete HUD;
@@ -657,7 +685,7 @@ int CPlayScene::IsWithinLoadChunk(LPGAMEOBJECT obj)
 		return 1;
 }
 
-bool CPlayScene::IsGameObjectDeleted(const LPGAMEOBJECT& o) { return o == NULL; }
+bool CPlayScene::IsGameObjectDeleted(const LPGAMEOBJECT& o) { return o == nullptr; }
 
 void CPlayScene::ActivateAllObjects()
 {
@@ -679,7 +707,7 @@ void CPlayScene::PurgeDeletedObjects()
 		if (o->IsDeleted())
 		{
 			delete o;
-			*it = NULL;
+			*it = nullptr;
 		}
 	}
 

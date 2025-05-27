@@ -11,7 +11,9 @@
 #include "QuestionBrick.h"
 #include "ShinyBrick.h"
 #include "PiranhaPlant.h"
+#include "PlainPiranha.h"
 #include "Koopa.h"
+#include "ParaTroopa.h"
 #include "PSwitch.h"
 #include "MovingPlatform.h"
 #include "Collision.h"
@@ -158,49 +160,100 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	//Handle Koopa Picking and Kicking
 	if (Koopa)
 	{
-		//Adjust where koopa sprite is draw to make it look prettier
-		if (level != MARIO_LEVEL_RACCOON)
-			Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 2.f, y - 3.f);
-		else
-			Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 7.f, y - 3.f);
-		Koopa->SetSpeed(0, 0);
-
-		//If koopa is out of shell while mario is still holding it, mario is hurt
-		if (Koopa->GetState() == KOOPA_STATE_WALKING_LEFT ||
-			Koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+		if (dynamic_cast<CKoopa*>(Koopa)) 
 		{
-			GetHurt();
-			if (nx == 1) //Koopa direction is base on Mario direction
-				Koopa->SetState(KOOPA_STATE_WALKING_RIGHT);
+			//Adjust where koopa sprite is draw to make it look prettier
+			if (level != MARIO_LEVEL_RACCOON)
+				Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 2.f, y - 3.f);
 			else
-				Koopa->SetState(KOOPA_STATE_WALKING_LEFT);
+				Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 7.f, y - 3.f);
+			Koopa->SetSpeed(0, 0);
 
-			dynamic_cast<CKoopa*>(Koopa)->SetIsHeld(false);
-			Koopa = NULL;
-		}
-		else
-		{
-			if (!isAbleToHold) //Mario release koopa
+			//If koopa is out of shell while mario is still holding it, mario is hurt
+			if (Koopa->GetState() == KOOPA_STATE_WALKING_LEFT ||
+				Koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 			{
-				isKicking = true;
-				kick_start = now;
-
-				//If koopa is in a wall and mario is kicking it, mario kill it
-				if (dynamic_cast<CKoopa*>(Koopa)->IsInWall())
-					Koopa->SetState(KOOPA_STATE_DIE);
+				GetHurt();
+				if (nx == 1) //Koopa direction is base on Mario direction
+					Koopa->SetState(KOOPA_STATE_WALKING_RIGHT);
 				else
-				{
-					if (Koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
-						Koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
-						Koopa->SetState(KOOPA_STATE_SHELL_MOVE);
-					else
-						Koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
-					//Koopa is kicked in the direction mario is looking
-					Koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
-				}
+					Koopa->SetState(KOOPA_STATE_WALKING_LEFT);
 
 				dynamic_cast<CKoopa*>(Koopa)->SetIsHeld(false);
-				Koopa = NULL;
+				Koopa = nullptr;
+			}
+			else
+			{
+				if (!isAbleToHold) //Mario release koopa
+				{
+					isKicking = true;
+					kick_start = now;
+
+					//If koopa is in a wall and mario is kicking it, mario kill it
+					if (dynamic_cast<CKoopa*>(Koopa)->IsInWall())
+						Koopa->SetState(KOOPA_STATE_DIE);
+					else
+					{
+						if (Koopa->GetState() == KOOPA_STATE_SHELL_IDLE ||
+							Koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
+							Koopa->SetState(KOOPA_STATE_SHELL_MOVE);
+						else
+							Koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
+						//Koopa is kicked in the direction mario is looking
+						Koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
+					}
+
+					dynamic_cast<CKoopa*>(Koopa)->SetIsHeld(false);
+					Koopa = nullptr;
+				}
+			}
+		}
+
+		if (dynamic_cast<CParaTroopa*>(Koopa)) {
+			//Adjust where koopa sprite is draw to make it look prettier
+			if (level != MARIO_LEVEL_RACCOON)
+				Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 2.f, y - 3.f);
+			else
+				Koopa->SetPosition(x + nx * MARIO_BIG_BBOX_WIDTH / 2 + nx * 7.f, y - 3.f);
+			Koopa->SetSpeed(0, 0);
+
+			//If koopa is out of shell while mario is still holding it, mario is hurt
+			if (Koopa->GetState() == PARATROOPA_STATE_WALKING_LEFT ||
+				Koopa->GetState() == PARATROOPA_STATE_WALKING_RIGHT)
+			{
+				GetHurt();
+				if (nx == 1) //Koopa direction is base on Mario direction
+					Koopa->SetState(PARATROOPA_STATE_WALKING_RIGHT);
+				else
+					Koopa->SetState(PARATROOPA_STATE_WALKING_LEFT);
+
+				dynamic_cast<CParaTroopa*>(Koopa)->SetIsHeld(false);
+				Koopa = nullptr;
+			}
+			else
+			{
+				if (!isAbleToHold) //Mario release koopa
+				{
+					isKicking = true;
+					kick_start = now;
+
+					//If koopa is in a wall and mario is kicking it, mario kill it
+					if (dynamic_cast<CParaTroopa*>(Koopa)->IsInWall())
+						Koopa->SetState(PARATROOPA_STATE_DIE);
+					else
+					{
+						if (Koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE ||
+							Koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING)
+							Koopa->SetState(PARATROOPA_STATE_SHELL_MOVE);
+						else
+							Koopa->SetState(PARATROOPA_STATE_SHELL_REVERSE_MOVE);
+						//Koopa is kicked in the direction mario is looking
+						Koopa->SetSpeed(nx * PARATROOPA_SHELL_SPEED, 0);
+					}
+
+					dynamic_cast<CParaTroopa*>(Koopa)->SetIsHeld(false);
+					Koopa = nullptr;
+				}
 			}
 		}
 	}
@@ -219,7 +272,7 @@ void CMario::AddPoint(int p, LPCOLLISIONEVENT e)
 {
 	point += p;
 	//Get the position of the object that mario touched to add particle
-	if (e != NULL)
+	if (e != nullptr)
 	{
 		CGame* game = CGame::GetInstance();
 		CPlayScene* playScene = dynamic_cast<CPlayScene*>(game->GetCurrentScene());
@@ -282,6 +335,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 	{
 		OnCollisionWithPiranhaPlant(e);
 	}
+	else if (dynamic_cast<CPlainPiranha*>(e->obj))
+	{
+		OnCollisionWithPlainPiranha(e);
+	}
 	else if (dynamic_cast<CPowerUp*>(e->obj))
 	{
 		OnCollisionWithPowerUp(e);
@@ -293,6 +350,10 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 	else if (dynamic_cast<CKoopa*>(e->obj))
 	{
 		OnCollisionWithKoopa(e);
+	}
+	else if (dynamic_cast<CParaTroopa*>(e->obj))
+	{
+		OnCollisionWithParaTroopa(e);
 	}
 	else if (dynamic_cast<CBrick*>(e->obj))
 	{
@@ -529,23 +590,6 @@ void CMario::OnCollisionWithGoalRoulette(LPCOLLISIONEVENT e)
 	// Add the card to the cards vector 
 	cards.push_back(card);
 
-	// If the currentEmptyCard index exceeds 3, 
-	// reset it to 0 and add points based on the cards
-	// I dont think this is needed because we only have 2 levels but maybe who know  ¯\_(ツ)_/¯
-	//if (cards.size() > 3)
-	//{
-	//	cards.clear()
-	//	for (int i = 0; i < cards.size(); i++)
-	//	{
-	//		if (cards[i] == CARD_TYPE_MUSHROOM)
-	//			AddPoint(1000, e);
-	//		else if (cards[i] == CARD_TYPE_PLANT)
-	//			AddPoint(2000, e);
-	//		else if (cards[i] == CARD_TYPE_STAR)
-	//			AddPoint(3000, e);
-	//	}
-	//}
-
 	goalRoulette->Delete();
 }
 
@@ -564,15 +608,23 @@ void CMario::OnCollisionWithPortal(LPCOLLISIONEVENT e)
 	CGame::GetInstance()->InitiateSwitchScene(p->GetSceneId());
 }
 
-void CMario::OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e)
-{
+void CMario::OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e) {
 	CPiranhaPlant* piranhaPlant = dynamic_cast<CPiranhaPlant*>(e->obj);
 	if (piranhaPlant) {
 		if (piranhaPlant->GetState() != PIRANHA_STATE_HIDE
 			&& piranhaPlant->GetState() != PIRANHA_STATE_DIE)
 		GetHurt();
 	}
-	
+}
+
+void CMario::OnCollisionWithPlainPiranha(LPCOLLISIONEVENT e) {
+	CPlainPiranha* plainPiranha = dynamic_cast<CPlainPiranha*>(e->obj);
+
+	if (plainPiranha) {
+		if (plainPiranha->GetState() != PLAIN_PIRANHA_STATE_HIDE
+			&& plainPiranha->GetState() != PLAIN_PIRANHA_STATE_DIE)
+			GetHurt();
+	}
 }
 
 void CMario::OnCollisionWithBullet(LPCOLLISIONEVENT e) {
@@ -594,12 +646,12 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 				: KOOPA_STATE_SHELL_IDLE);
 		}
 		else if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
-			|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING
-			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE
-			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING) 
+				|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING
+				|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE
+				|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING) 
 		{
 			if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
-			 || koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
+				|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
 				koopa->SetState(KOOPA_STATE_SHELL_MOVE);
 			else
 				koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
@@ -613,7 +665,7 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 			|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING
 			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE
 			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_SHAKING) {
-			if (isAbleToHold) 	// Mario picks Koopa
+			if (isAbleToHold && !Koopa) 	// Mario picks Koopa
 			{
 				this->Koopa = koopa;
 				koopa->SetIsHeld(true);
@@ -630,11 +682,11 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 			}
 		}
 		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
-			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
-			|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
-			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) 
+				|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
+				|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
+				|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) 
 		{
-			Koopa = NULL;
+			Koopa = nullptr;
 			GetHurt();
 		}
 	}
@@ -643,6 +695,78 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
 			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
 			GetHurt();
+	}
+}
+
+void CMario::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e) {
+	CParaTroopa* koopa = dynamic_cast<CParaTroopa*>(e->obj);
+
+	if (e->ny < 0) {
+		vy = -MARIO_JUMP_DEFLECT_SPEED;
+		if (koopa->GetState() == PARATROOPA_STATE_WALKING_LEFT
+			|| koopa->GetState() == PARATROOPA_STATE_WALKING_RIGHT
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_MOVE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE) {
+			koopa->SetState((koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE)
+				? PARATROOPA_STATE_SHELL_REVERSE_IDLE
+				: PARATROOPA_STATE_SHELL_IDLE);
+			DebugOut(L"[INFO] Mario jump on ParaTroopa\n");
+		}
+		else if (koopa->GetState() == PARATROOPA_STATE_BOUNCE_LEFT
+			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_RIGHT) {
+			DebugOut(L"[INFO] Mario jump on ParaTroopa (bounce)\n");
+			koopa->SetState((koopa->GetState() == PARATROOPA_STATE_BOUNCE_LEFT)
+				? PARATROOPA_STATE_WALKING_LEFT
+				: PARATROOPA_STATE_WALKING_RIGHT);
+		}
+		else if (koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_IDLE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_SHAKING)
+		{
+			DebugOut(L"[INFO] Mario jump on ParaTroopa (shell)\n");
+			if (koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE
+				|| koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING)
+				koopa->SetState(PARATROOPA_STATE_SHELL_MOVE);
+			else
+				koopa->SetState(PARATROOPA_STATE_SHELL_REVERSE_MOVE);
+
+			koopa->SetSpeed(nx * PARATROOPA_SHELL_SPEED, 0);
+		}
+		AddPoint(100, e);
+	}
+	else if (e->nx != 0 || e->ny > 0) {
+		if (koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_IDLE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_SHAKING) {
+			if (isAbleToHold && !Koopa) 	// Mario picks Koopa
+			{
+				this->Koopa = koopa;
+				koopa->SetIsHeld(true);
+			}
+			else { // Kick
+				isKicking = true;
+				kick_start = GetTickCount64();
+				if (koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE
+					|| koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING)
+					koopa->SetState(PARATROOPA_STATE_SHELL_MOVE);
+				else
+					koopa->SetState(PARATROOPA_STATE_SHELL_REVERSE_MOVE);
+				koopa->SetSpeed(nx * PARATROOPA_SHELL_SPEED, 0);
+			}
+		}
+		else if (koopa->GetState() == PARATROOPA_STATE_WALKING_LEFT
+			|| koopa->GetState() == PARATROOPA_STATE_WALKING_RIGHT
+			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_LEFT
+			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_RIGHT
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_MOVE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE)
+		{
+			DebugOut(L"[INFO] Mario hit ParaTroopa\n");
+			Koopa = nullptr;
+			GetHurt();
+		}
 	}
 }
 

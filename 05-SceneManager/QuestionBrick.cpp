@@ -2,6 +2,7 @@
 #include "Coin.h"
 #include "PowerUp.h"
 #include "Koopa.h"
+#include "ParaTroopa.h"
 #include "RaccoonTail.h"
 #include "PSwitch.h"
 #include "Game.h"
@@ -36,16 +37,10 @@ void CQuestionBrick::Render()
 
 void CQuestionBrick::OnCollisionWith(LPCOLLISIONEVENT e)
 {
-    if (e->nx != 0 && dynamic_cast<CKoopa*>(e->src_obj))
+    if (e->nx != 0 && (dynamic_cast<CKoopa*>(e->src_obj) 
+                        || dynamic_cast<CParaTroopa*>(e->src_obj)))
     {
 	    Activate();
-    }
-
-    if (e->ny != 0 && dynamic_cast<CKoopa*>(e->obj)) {
-		CKoopa* koopa = dynamic_cast<CKoopa*>(e->obj);
-        if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
-            || koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
-            koopa->SetState(KOOPA_STATE_SHELL_REVERSE_IDLE);
     }
 }
 
@@ -132,11 +127,11 @@ void CQuestionBrick::SetState(int state)
 
 void CQuestionBrick::ActivateItem()
 {
-    if (item == NULL) return;
+    if (item == nullptr) return;
 	//THE ORDER OF THESE FUNCTIONS MATTER
     item->SetState(100); //100 is STATE_ACTIVE for all item (lazy implementation)
     item->SetActive(true);
-    item = NULL; // Set item to NULL to prevent access error (PAINFUL LESSON)
+    item = nullptr; // Set item to NULL to prevent access error (PAINFUL LESSON)
 }
 
 

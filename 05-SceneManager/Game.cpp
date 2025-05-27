@@ -8,7 +8,7 @@
 #include "Animations.h"
 #include "PlayScene.h"
 
-CGame * CGame::__instance = NULL;
+CGame * CGame::__instance = nullptr;
 
 /*
 	Initialize DirectX, create a Direct3D device for rendering within the window, initial Sprite library for
@@ -47,9 +47,9 @@ void CGame::Init(HWND hWnd, HINSTANCE hInstance)
 	swapChainDesc.Windowed = TRUE;
 
 	// Create the D3D device and the swap chain
-	HRESULT hr = D3D10CreateDeviceAndSwapChain(NULL,
+	HRESULT hr = D3D10CreateDeviceAndSwapChain(nullptr,
 		D3D10_DRIVER_TYPE_HARDWARE,
-		NULL,
+		nullptr,
 		0,
 		D3D10_SDK_VERSION,
 		&swapChainDesc,
@@ -72,7 +72,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInstance)
 	}
 
 	// create the render target view
-	hr = pD3DDevice->CreateRenderTargetView(pBackBuffer, NULL, &pRenderTargetView);
+	hr = pD3DDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTargetView);
 
 	pBackBuffer->Release();
 	if (hr != S_OK)
@@ -82,7 +82,7 @@ void CGame::Init(HWND hWnd, HINSTANCE hInstance)
 	}
 
 	// set the render target
-	pD3DDevice->OMSetRenderTargets(1, &pRenderTargetView, NULL);
+	pD3DDevice->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
 
 	// create and set the viewport
 	D3D10_VIEWPORT viewPort;
@@ -169,7 +169,7 @@ void CGame::SetPointSamplerState()
 */
 void CGame::Draw(float x, float y, LPTEXTURE tex, RECT* rect, float alpha, int sprite_width, int sprite_height)
 {
-	if (tex == NULL) return;
+	if (tex == nullptr) return;
 
 	int spriteWidth = sprite_width;
 	int spriteHeight = sprite_height;
@@ -179,7 +179,7 @@ void CGame::Draw(float x, float y, LPTEXTURE tex, RECT* rect, float alpha, int s
 	// Set the sprite’s shader resource view
 	sprite.pTexture = tex->getShaderResourceView();
 
-	if (rect == NULL)
+	if (rect == nullptr)
 	{
 		// top-left location in U,V coords
 		sprite.TexCoord.x = 0;
@@ -237,16 +237,16 @@ void CGame::Draw(float x, float y, LPTEXTURE tex, RECT* rect, float alpha, int s
 */
 LPTEXTURE CGame::LoadTexture(LPCWSTR texturePath)
 {
-	ID3D10Resource* pD3D10Resource = NULL;
-	ID3D10Texture2D* tex = NULL;
+	ID3D10Resource* pD3D10Resource = nullptr;
+	ID3D10Texture2D* tex = nullptr;
 
 	// Retrieve image information first 
 	D3DX10_IMAGE_INFO imageInfo;
-	HRESULT hr = D3DX10GetImageInfoFromFile(texturePath, NULL, &imageInfo, NULL);
+	HRESULT hr = D3DX10GetImageInfoFromFile(texturePath, nullptr, &imageInfo, nullptr);
 	if (FAILED(hr))
 	{
 		DebugOut((wchar_t*)L"[ERROR] D3DX10GetImageInfoFromFile failed for  file: %s with error: %d\n", texturePath, hr);
-		return NULL;
+		return nullptr;
 	}
 
 	D3DX10_IMAGE_LOAD_INFO info; 
@@ -269,15 +269,15 @@ LPTEXTURE CGame::LoadTexture(LPCWSTR texturePath)
 	hr = D3DX10CreateTextureFromFile(pD3DDevice,
 		texturePath,
 		&info,
-		NULL,
+		nullptr,
 		&pD3D10Resource,
-		NULL);
+		nullptr);
 
 	// Make sure the texture was loaded successfully
 	if (FAILED(hr))
 	{
 		DebugOut((wchar_t*)L"[ERROR] Failed to load texture file: %s with error: %d\n", texturePath, hr);
-		return NULL;
+		return nullptr;
 	}
 
 	// Translates the ID3D10Resource object into a ID3D10Texture2D object
@@ -286,7 +286,7 @@ LPTEXTURE CGame::LoadTexture(LPCWSTR texturePath)
 
 	if (!tex) {
 		DebugOut((wchar_t*)L"[ERROR] Failed to convert from ID3D10Resource to ID3D10Texture2D \n");
-		return NULL;
+		return nullptr;
 	}
 
 	//
@@ -309,7 +309,7 @@ LPTEXTURE CGame::LoadTexture(LPCWSTR texturePath)
 	SRVDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Texture2D.MipLevels = desc.MipLevels;
 
-	ID3D10ShaderResourceView* gSpriteTextureRV = NULL;
+	ID3D10ShaderResourceView* gSpriteTextureRV = nullptr;
 
 	pD3DDevice->CreateShaderResourceView(tex, &SRVDesc, &gSpriteTextureRV);
 
@@ -325,14 +325,14 @@ int CGame::IsKeyDown(int KeyCode)
 
 void CGame::InitKeyboard()
 {
-	HRESULT hr = DirectInput8Create(this->hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&di, NULL);
+	HRESULT hr = DirectInput8Create(this->hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&di, nullptr);
 	if (hr != DI_OK)
 	{
 		DebugOut(L"[ERROR] DirectInput8Create failed!\n");
 		return;
 	}
 
-	hr = di->CreateDevice(GUID_SysKeyboard, &didv, NULL);
+	hr = di->CreateDevice(GUID_SysKeyboard, &didv, nullptr);
 	if (hr != DI_OK)
 	{
 		DebugOut(L"[ERROR] CreateDevice failed!\n");
@@ -514,6 +514,7 @@ void CGame::ReloadCurrentScene()
 	{
 		scenes[current_scene]->Unload(); // Unload the current scene
 		scenes[current_scene]->Load();   // Reload the scene
+		LoadSave();
 	}
 }
 
@@ -532,13 +533,32 @@ void CGame::SwitchScene()
 	LPSCENE s = scenes[next_scene];
 	this->SetKeyHandler(s->GetKeyEventHandler());
 	s->Load();
+	LoadSave();
 }
 
 void CGame::InitiateSwitchScene(int scene_id)
 {
+	Save();
 	next_scene = scene_id;
 }
 
+void CGame::Save()
+{
+	CPlayScene* playScene = dynamic_cast<CPlayScene*>(scenes[current_scene]);
+	CMario* mario = dynamic_cast<CMario*>(playScene->GetPlayer());
+	this->point = mario->GetPoint();
+	this->coin = mario->GetCoin();
+	this->cards = mario->GetCards();
+}
+
+void CGame::LoadSave()
+{
+	CPlayScene* playScene = dynamic_cast<CPlayScene*>(scenes[current_scene]);
+	CMario* mario = dynamic_cast<CMario*>(playScene->GetPlayer());
+	mario->SetPoint(this->point);
+	mario->SetCoin(this->coin);
+	mario->SetCards(this->cards);
+}
 
 void CGame::_ParseSection_TEXTURES(string line)
 {
@@ -551,7 +571,6 @@ void CGame::_ParseSection_TEXTURES(string line)
 
 	CTextures::GetInstance()->Add(texID, path.c_str());
 }
-
 
 CGame::~CGame()
 {
@@ -574,7 +593,7 @@ void CGame::CountDownFreezeTime()
 
 CGame* CGame::GetInstance()
 {
-	if (__instance == NULL) __instance = new CGame();
+	if (__instance == nullptr) __instance = new CGame();
 	return __instance;
 }
 

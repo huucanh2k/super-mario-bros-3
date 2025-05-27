@@ -273,9 +273,11 @@ class CMario : public CGameObject
 	void OnCollisionWithShinyBrick(LPCOLLISIONEVENT e);
 	void OnCollisionWithBrick(LPCOLLISIONEVENT e);
 	void OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e);
+	void OnCollisionWithPlainPiranha(LPCOLLISIONEVENT e);
 	void OnCollisionWithPowerUp(LPCOLLISIONEVENT e);
 	void OnCollisionWithBullet(LPCOLLISIONEVENT e);
 	void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
+	void OnCollisionWithParaTroopa(LPCOLLISIONEVENT e);
 	void OnCollisionWithPSwitch(LPCOLLISIONEVENT e);
 	void OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e);
 	void OnCollisionWithMovingPlatform(LPCOLLISIONEVENT e);
@@ -320,10 +322,10 @@ public:
 		isAbleToTunnelUp = false;
 		isInputBlocked = false;
 
-		Tail = NULL;
+		Tail = nullptr;
 		currentFloorY = GROUND_Y; // Initialize to ground level
 
-		Koopa = NULL;
+		Koopa = nullptr;
 
 		opacity = 1.0f;
 
@@ -350,6 +352,10 @@ public:
 	vector<int> GetCards() { return cards; }
 	int GetLevel() { return level; }
 
+	void SetPoint(int p) { point = p; }
+	void SetCoin(int c) { coin = c; }
+	void SetCards(vector<int> c) { cards = c; }
+
 	int IsCollidable() { return (state != MARIO_STATE_DIE); }
 
 	int IsBlocking() {
@@ -367,7 +373,7 @@ public:
 
 	//Update coin and point
 	void AddCoin() { coin++; }
-	void AddPoint(int p, LPCOLLISIONEVENT e = NULL);
+	void AddPoint(int p, LPCOLLISIONEVENT e = nullptr);
 
 	bool GetIsRunning() { return isRunning; }
 

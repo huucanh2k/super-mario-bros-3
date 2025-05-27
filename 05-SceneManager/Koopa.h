@@ -56,8 +56,6 @@ protected:
 	ULONGLONG stateShakingStart;
 	ULONGLONG die_start;
 
-	LPGAMEOBJECT platform;
-
 	bool isHeld;
 	BOOLEAN isInWall;
 public:
@@ -71,7 +69,6 @@ public:
 		die_start = -1;
 		isHeld = false;
 		isInWall = false;
-		platform = NULL;
 	}
 
 	void SetIsHeld(bool isHeld) { this->isHeld = isHeld; }
@@ -89,9 +86,10 @@ public:
 
 	void OnNoCollision(DWORD dt);
 	void OnCollisionWith(LPCOLLISIONEVENT e);
-	bool IsOnPlatform();
 	CMario* GetPlayer();
-
+	bool IsPlatformEdge(float checkDistance, vector<LPGAMEOBJECT>& possibleGrounds);
 	void OnCollisionWithBrick(LPCOLLISIONEVENT e);
+	void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
+	void OnCollisionWithShinyBrick(LPCOLLISIONEVENT e);
 };
 

@@ -26,7 +26,7 @@ public:
     }
 
 
-    void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects = NULL) override;
+    void Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects = nullptr) override;
     void Render() override;
     void SetState(int state) override;
     void GetBoundingBox(float& l, float& t, float& r, float& b);
@@ -37,7 +37,9 @@ public:
     void OnCollisionWithQuestionBrick(LPCOLLISIONEVENT e);
 	void OnCollisionWithShinyBrick(LPCOLLISIONEVENT e);
     void OnCollisionWithKoopa(LPCOLLISIONEVENT e);
+	void OnCollisionWithParaTroopa(LPCOLLISIONEVENT e);
     void OnCollisionWithPiranhaPlant(LPCOLLISIONEVENT e);
+	void OnCollisionWithPlainPiranha(LPCOLLISIONEVENT e);
 
     int IsCollidable() { return 1; }
     int IsBlocking() { return 0; }
