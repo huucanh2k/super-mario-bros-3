@@ -21,7 +21,7 @@ assets\HUD.txt
 assets\koopa.txt
 assets\paratroopa.txt
 assets\winged_goomba.txt
-
+assets\plain_piranha.txt
 
 
 
@@ -125,6 +125,9 @@ assets\winged_goomba.txt
 #PIRANHA_PLANT
 9	359	367
 9	1863	367
+
+#PLAIN PIRANHA
+14	1799	383
 
 #INVISIBLE WALL
 #49	0	0	8	400	-1

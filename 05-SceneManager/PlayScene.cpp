@@ -12,8 +12,10 @@
 #include "SceneryObject.h"
 #include "SampleKeyEventHandler.h"
 #include "PiranhaPlant.h"
+#include "PlainPiranha.h"
 #include "FireBullet.h"
 #include "Koopa.h"
+#include "ParaTroopa.h"
 #include "RaccoonTail.h"
 #include "Wall.h"
 #include "ShinyBrick.h"
@@ -299,6 +301,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			break;
 		}
 
+		case OBJECT_TYPE_PLAIN_PIRANHA:
+		{
+			obj = new CPlainPiranha(x, y);
+			DebugOut(L"Loaded Plain Piranha\n");
+			break;
+		}
+
 		case OBJECT_TYPE_KOOPA:
 		{
 			obj = new CKoopa(x, y);
@@ -312,12 +321,19 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			break;
 		}
 
+		case OBJECT_TYPE_PARATROOPA:
+		{
+			obj = new CParaTroopa(x, y);
+			DebugOut(L"Loaded Para Troopa\n");
+			break;
+		}
+
 		case OBJECT_TYPE_PORTAL:
 		{
 			int scene_id = atoi(tokens[3].c_str());
 			obj = new CPortal(x, y, scene_id);
+			break;
 		}
-		break;
 
 		case OBJECT_TYPE_TUNNEL_BLOCK:
 		{
@@ -508,7 +524,7 @@ void CPlayScene::Update(DWORD dt)
 			if (objects[i]->IsActive())
 			{
 				objects[i]->Reload();
-				objects[i]->SetActive(false);\
+				objects[i]->SetActive(false);
 			}
 		}
 		else if (chunkStatus == 1) // Object is in the load chunk (but not fully on-screen yet)
