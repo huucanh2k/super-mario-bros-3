@@ -265,7 +265,6 @@ class CMario : public CGameObject
 	//Tracking point and coin
 	int coin;
 	int point;
-	int live;
 
 	void OnCollisionWithGoomba(LPCOLLISIONEVENT e);
 	void OnCollisionWithCoin(LPCOLLISIONEVENT e);
@@ -333,7 +332,6 @@ public:
 		pMeter = 0;
 		coin = 0;
 		point = 0;
-		live = 4;
 	}
 	void StartFlying() 
 	{ 
@@ -350,7 +348,6 @@ public:
 	float GetAx() { return ax; }
 	int GetCoin() { return coin; }
 	int GetPoint() { return point; }
-	int GetLive() { return live; }
 	float GetPMeter() { return pMeter; }
 	vector<int> GetCards() { return cards; }
 	int GetLevel() { return level; }
@@ -358,7 +355,6 @@ public:
 	void SetPoint(int p) { point = p; }
 	void SetCoin(int c) { coin = c; }
 	void SetCards(vector<int> c) { cards = c; }
-	void SetLive(int l) { live = l; }
 
 	int IsCollidable() { return (state != MARIO_STATE_DIE); }
 
