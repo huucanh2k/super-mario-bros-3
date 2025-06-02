@@ -25,6 +25,7 @@
 #include "TunnelBlock.h"
 #include "GoalRoulette.h"
 #include "SceneSweeper.h"
+#include "BoomerangBrother.h"
 
 using namespace std;
 
@@ -328,6 +329,13 @@ void CPlayScene::_ParseSection_OBJECTS(string line)
 			break;
 		}
 
+		case OBJECT_TYPE_BOOMERANG_BROTHER:
+		{
+			obj = new CBoomerangBrother(x, y);
+			DebugOut(L"Loaded Boomerang Brother\n");
+			break;
+		}
+
 		case OBJECT_TYPE_PORTAL:
 		{
 			int scene_id = atoi(tokens[3].c_str());
@@ -596,7 +604,7 @@ void CPlayScene::Update(DWORD dt)
 		cx = rightBoundary - game->GetBackBufferWidth() - 9.f;
 
 	if (cy < 0) cy = 0;
-	else if (cy > bottomBoundary) cy = bottomBoundary;
+	else if (cy > bottomBoundary - game->GetBackBufferHeight()) cy = bottomBoundary - game->GetBackBufferHeight();
 
 	game->SetCamPos(cx, cy);
 
