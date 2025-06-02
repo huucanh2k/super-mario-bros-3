@@ -19,6 +19,8 @@
 #include "Collision.h"
 #include "TunnelBlock.h"
 #include "GoalRoulette.h"
+#include "Boomerang.h"
+#include "BoomerangBrother.h"
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
@@ -262,14 +264,15 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	}
 
 	//Handle Raccoon Tail
-	if (Tail && tailAttack_start)
+	if (Tail)
 	{
-		Tail->SetPosition(x, y + 4.f);
+		Tail->SetPosition(x + 5.f*nx, y + 4.f);
 	}
 
 	//DebugOut(L"[INFO] Mario: %d %d\n", isAbleToTunnelDown, isAbleToTunnelUp);
 	//DebugOut(L"[INFO] Mario Update: %f %f\n", x, y);
 	//DebugOut(L"[INFO] Mario acceleration: %f %f\n", ax, ay);
+	//DebugOut(L"[INFO] Mario: %d\n", isSitting);
 }
 
 void CMario::AddPoint(int p, LPCOLLISIONEVENT e)
@@ -381,6 +384,14 @@ void CMario::OnCollisionWith(LPCOLLISIONEVENT e)
 	else if (dynamic_cast<CGoalRoulette*>(e->obj))
 	{
 		OnCollisionWithGoalRoulette(e);
+	}
+	else if (dynamic_cast<CBoomerang*>(e->obj))
+	{
+		OnCollisionWithGoalBoomerang(e);
+	}
+	else if (dynamic_cast<CBoomerangBrother*>(e->obj))
+	{
+		OnCollisionWithBoomerangBrother(e);
 	}
 }
 
@@ -586,6 +597,31 @@ void CMario::OnCollisionWithGoalRoulette(LPCOLLISIONEVENT e)
 	goalRoulette->Delete();
 }
 
+void CMario::OnCollisionWithGoalBoomerang(LPCOLLISIONEVENT e)
+{
+	GetHurt();
+}
+
+void CMario::OnCollisionWithBoomerangBrother(LPCOLLISIONEVENT e)
+{
+	CBoomerangBrother* boomerangBrother = dynamic_cast<CBoomerangBrother*>(e->obj);
+	DebugOut(L"[INFO] Mario collided with Boomerang Brother\n");
+	if (e->ny < 0)
+	{
+		//DebugOut(L"[INFO] Mario jump on Boomerang Brother\n");
+		if (boomerangBrother->GetState() != BOOMERANG_BROTHER_STATE_DIE)
+		{
+			boomerangBrother->SetState(BOOMERANG_BROTHER_STATE_DIE);
+			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			AddPoint(1000, e);
+		}
+	}
+	else if (boomerangBrother->GetState() != BOOMERANG_BROTHER_STATE_DIE)
+	{
+		GetHurt();
+	}
+}
+
 
 void CMario::OnCollisionWithCoin(LPCOLLISIONEVENT e)
 {
@@ -630,7 +666,9 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 
 	if (e->ny < 0) {
 		vy = -MARIO_JUMP_DEFLECT_SPEED;
-		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
+		if (koopa->GetState() == KOOPA_STATE_FLY) 
+			koopa->SetState(KOOPA_STATE_WALKING_LEFT);
+		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
 			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
 			|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
 			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) {
@@ -653,7 +691,7 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 		}
 		AddPoint(100, e);
 	}
-	else if (e->nx != 0 || e->ny > 0) {
+	else if (e->nx != 0) {
 		if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
 			|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING
 			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_IDLE
@@ -677,17 +715,23 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
 				|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
 				|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
-				|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) 
+				|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE
+				|| koopa->GetState() == KOOPA_STATE_FLY) 
 		{
 			Koopa = nullptr;
 			GetHurt();
 		}
 	}
-	else 
-	{
+	else if (e->ny > 0) {
 		if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
-			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT)
+			|| koopa->GetState() == KOOPA_STATE_WALKING_RIGHT
+			|| koopa->GetState() == KOOPA_STATE_SHELL_MOVE
+			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE
+			|| koopa->GetState() == KOOPA_STATE_FLY)
+		{
+			DebugOut(L"[INFO] Mario hit Koopa from above\n");
 			GetHurt();
+		}
 	}
 }
 
@@ -728,7 +772,7 @@ void CMario::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e) {
 		}
 		AddPoint(100, e);
 	}
-	else if (e->nx != 0 || e->ny > 0) {
+	else if (e->nx != 0) {
 		if (koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE
 			|| koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING
 			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_IDLE
@@ -754,12 +798,22 @@ void CMario::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e) {
 			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_LEFT
 			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_RIGHT
 			|| koopa->GetState() == PARATROOPA_STATE_SHELL_MOVE
-			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE)
-		{
-			DebugOut(L"[INFO] Mario hit ParaTroopa\n");
-			Koopa = nullptr;
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE) {
 			GetHurt();
+			DebugOut(L"[INFO] ParaTroopa hit Mario from side\n");
+			Koopa = nullptr;
 		}
+	}
+	else if (e->ny > 0) {
+		if (koopa->GetState() == PARATROOPA_STATE_WALKING_LEFT
+			|| koopa->GetState() == PARATROOPA_STATE_WALKING_RIGHT
+			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_LEFT
+			|| koopa->GetState() == PARATROOPA_STATE_BOUNCE_RIGHT
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_MOVE
+			|| koopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE) {
+			DebugOut(L"[INFO] Mario hit ParaTroopa from above\n");
+			GetHurt();
+		}	
 	}
 }
 
@@ -1242,7 +1296,7 @@ void CMario::SetState(int state)
 		break;
 
 	case MARIO_STATE_FLYING:
-		DebugOut(L"[INFO] Mario flying\n");
+		//DebugOut(L"[INFO] Mario flying\n");
 		vy = MARIO_FLYING_SPEED; // Apply upward boost
 		slowfall_start = GetTickCount64();
 		maxVy = MARIO_FLYING_SPEED; // Use flying speed as max speed
@@ -1254,7 +1308,7 @@ void CMario::SetState(int state)
 		if (level == MARIO_LEVEL_RACCOON && !isTailAttacking &&
 			(GetTickCount64() - tailAttack_start > MARIO_TAIL_ATTACK_TIME + 100))
 		{
-			DebugOut(L"[INFO] Mario tail attack\n");
+			//DebugOut(L"[INFO] Mario tail attack\n");
 			if (Tail)
 			{
 				Tail->SetPosition(x, y + 6.f);
@@ -1327,6 +1381,7 @@ void CMario::SetState(int state)
 		isTunneling = true;
 		tunnel_start = GetTickCount64();
 		currentFloorY = y;
+		isSitting = false;
 		ay = 0;
 		ax = 0;
 		vx = 0;
@@ -1337,6 +1392,7 @@ void CMario::SetState(int state)
 		isTunneling = true;
 		tunnel_start = GetTickCount64();
 		currentFloorY = y;
+		isSitting = false;
 		ay = 0;
 		ax = 0;
 		vx = 0;
