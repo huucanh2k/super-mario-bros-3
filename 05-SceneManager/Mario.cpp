@@ -21,6 +21,7 @@
 #include "GoalRoulette.h"
 #include "Boomerang.h"
 #include "BoomerangBrother.h"
+#include "SceneSweeper.h"
 
 void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 {
@@ -159,8 +160,9 @@ void CMario::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects)
 	playScene->GetBoundary(leftBoundary, rightBoundary, bottomBoundary);
 	
 	if (x < leftBoundary + 8.f) { x = leftBoundary + 8.f; vx = 0; }
+	else if (x > rightBoundary - 8.f) { x = rightBoundary - 8.f; vx = 0; }
 	if (y < 8.f) { y = 8.f; vy = 0; }
-	if (y > bottomBoundary) SetState(MARIO_STATE_DIE); 
+	else if (y > bottomBoundary) SetState(MARIO_STATE_DIE); 
 
 	//Handle Koopa Picking and Kicking
 	if (Koopa)
@@ -457,7 +459,9 @@ void CMario::OnCollisionWithGoomba(LPCOLLISIONEVENT e)
 		if (goomba->GetState() != GOOMBA_STATE_DIE && goomba->GetState() != GOOMBA_STATE_DIE_REVERSE)
 		{
 			goomba->SetState(GOOMBA_STATE_DIE);
-			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			Bounce();
+			currentFloorY = y;
+
 			AddPoint(100, e);
 		}
 	}
@@ -471,7 +475,8 @@ void CMario::OnCollisionWithWingedGoomba(LPCOLLISIONEVENT e) {
 	CWingedGoomba* wingedGoomba = dynamic_cast<CWingedGoomba*>(e->obj);
 
 	if (e->ny < 0) {
-		vy = -MARIO_JUMP_DEFLECT_SPEED;
+		Bounce();
+		currentFloorY = y;
 
 		int state = wingedGoomba->GetState();
 		if (state != GOOMBA_WING_STATE_DIE && state != GOOMBA_WING_STATE_DIE_REVERSE) {
@@ -572,25 +577,51 @@ void CMario::OnCollisionWithGoalRoulette(LPCOLLISIONEVENT e)
 	CParticle* particle = nullptr;
 
 	if (card == CARD_TYPE_MUSHROOM)
-		particle = new CParticle(objX, objY, PARTICLE_TYPE_MUSHROOM, 0);
+		particle = new CParticle(objX, objY, PARTICLE_TYPE_MUSHROOM);
 	else if (card == CARD_TYPE_PLANT)
-		particle = new CParticle(objX, objY, PARTICLE_TYPE_PLANT, 0);
+		particle = new CParticle(objX, objY, PARTICLE_TYPE_PLANT);
 	else if (card == CARD_TYPE_STAR)
-		particle = new CParticle(objX, objY, PARTICLE_TYPE_STAR, 0);
+		particle = new CParticle(objX, objY, PARTICLE_TYPE_STAR);
 
 	if (particle)
 		playScene->Add(particle);
+
+	float camX, camY;
+	game->GetCamPos(camX, camY);
+
+	//Course end text
+	particle = new CParticle(camX + 124.f, camY + 32.f, PARTICLE_TYPE_TEXT_1);
+	if (particle)
+		playScene->Add(particle);
+
+	//You got a card text
+	particle = new CParticle(camX + 108.f, camY + 48.f, PARTICLE_TYPE_TEXT_2);
+	if (particle)
+		playScene->Add(particle);
+
+	//Card
+	if (card == CARD_TYPE_MUSHROOM)
+		particle = new CParticle(camX + 188.f, camY + 56.f, PARTICLE_TYPE_CARD_MUSHROOM);
+	else if (card == CARD_TYPE_PLANT)
+		particle = new CParticle(camX + 188.f, camY + 56.f, PARTICLE_TYPE_CARD_PLANT);
+	else if (card == CARD_TYPE_STAR)
+		particle = new CParticle(camX + 188.f, camY + 56.f, PARTICLE_TYPE_CARD_STAR);
+
+	playScene->Add(particle);
+
+	// Add the card to the cards vector 
+	cards.push_back(card);
 
 	// Force mrio to walk right
 	SetState(MARIO_STATE_WALKING_RIGHT);
 	isInputBlocked = true; //Restrict input
 
-	//Open portal to "next" scene
-	LPGAMEOBJECT portal = new CPortal(objX + 115.f, objY + 65.f, 2);	//Just put 2 for now because we dont have alot of level
-	playScene->Add(portal);
-
-	// Add the card to the cards vector 
-	cards.push_back(card);
+	//This entire part is just to let mario walk off the screen
+	float rightBoundary;
+	float dummy1, dummy2;
+	playScene->GetBoundary(dummy1, rightBoundary, dummy2);
+	playScene->SetCamRightBound(rightBoundary + 320.f);
+	playScene->SetCamFollowOnX(false);
 
 	goalRoulette->Delete();
 }
@@ -610,7 +641,8 @@ void CMario::OnCollisionWithBoomerangBrother(LPCOLLISIONEVENT e)
 		if (boomerangBrother->GetState() != BOOMERANG_BROTHER_STATE_DIE)
 		{
 			boomerangBrother->SetState(BOOMERANG_BROTHER_STATE_DIE);
-			vy = -MARIO_JUMP_DEFLECT_SPEED;
+			Bounce();
+			currentFloorY = y;
 			AddPoint(1000, e);
 		}
 	}
@@ -662,7 +694,9 @@ void CMario::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 	CKoopa* koopa = dynamic_cast<CKoopa*>(e->obj);
 
 	if (e->ny < 0) {
-		vy = -MARIO_JUMP_DEFLECT_SPEED;
+		Bounce();
+		currentFloorY = y;
+
 		if (koopa->GetState() == KOOPA_STATE_FLY) 
 			koopa->SetState(KOOPA_STATE_WALKING_LEFT);
 		else if (koopa->GetState() == KOOPA_STATE_WALKING_LEFT
@@ -747,7 +781,9 @@ void CMario::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e) {
 	CParaTroopa* koopa = dynamic_cast<CParaTroopa*>(e->obj);
 
 	if (e->ny < 0) {
-		vy = -MARIO_JUMP_DEFLECT_SPEED;
+		Bounce();
+		currentFloorY = y;
+
 		if (koopa->GetState() == PARATROOPA_STATE_WALKING_LEFT
 			|| koopa->GetState() == PARATROOPA_STATE_WALKING_RIGHT
 			|| koopa->GetState() == PARATROOPA_STATE_SHELL_MOVE
@@ -790,12 +826,12 @@ void CMario::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e) {
 				DebugOut(L"[INFO] Mario kick Koopa by touch\n");
 				isKicking = true;
 				kick_start = GetTickCount64();
-				if (koopa->GetState() == KOOPA_STATE_SHELL_IDLE
-					|| koopa->GetState() == KOOPA_STATE_SHELL_SHAKING)
-					koopa->SetState(KOOPA_STATE_SHELL_MOVE);
+				if (koopa->GetState() == PARATROOPA_STATE_SHELL_IDLE
+					|| koopa->GetState() == PARATROOPA_STATE_SHELL_SHAKING)
+					koopa->SetState(PARATROOPA_STATE_SHELL_MOVE);
 				else
-					koopa->SetState(KOOPA_STATE_SHELL_REVERSE_MOVE);
-				koopa->SetSpeed(nx * KOOPA_SHELL_SPEED, 0);
+					koopa->SetState(PARATROOPA_STATE_SHELL_REVERSE_MOVE);
+				koopa->SetSpeed(nx * PARATROOPA_SHELL_SPEED, 0);
 			}
 		}
 		else if (koopa->GetState() == PARATROOPA_STATE_WALKING_LEFT
@@ -1196,9 +1232,6 @@ void CMario::Render()
 
 	animations->Get(aniId)->Render(x, y, opacity);
 
-	RenderBoundingBox();
-
-	DebugOutTitle(L"Coins: %d", coin);
 }
 
 void CMario::SetState(int state)
@@ -1384,6 +1417,7 @@ void CMario::SetState(int state)
 		ax = 0;
 		isRunning = false;
 		live--;
+		SetLevel(MARIO_LEVEL_SMALL); 
 		CGame::GetInstance()->Save();
 		break;
 
@@ -1487,4 +1521,14 @@ void CMario::GetHurt()
 			SetState(MARIO_STATE_DIE);
 		}
 	}
+}
+
+void CMario::Bounce()
+{
+	if (isAbleToHighBounce)
+	{
+		ay = 0;
+		currentFloorY -= MAARIO_HIGH_BOUNCE_DISTANCE;
+	}
+	vy = -MARIO_JUMP_DEFLECT_SPEED;
 }
