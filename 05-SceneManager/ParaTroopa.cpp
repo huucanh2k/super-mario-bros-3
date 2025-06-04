@@ -110,24 +110,21 @@ void CParaTroopa::OnCollisionWith(LPCOLLISIONEVENT e) {
 				vx = -PARATROOPA_SHELL_SPEED;
 			}
 		}
+
+		if (dynamic_cast<CShinyBrick*>(e->obj))
+			OnCollisionWithShinyBrick(e);
+		else if (dynamic_cast<CQuestionBrick*>(e->obj))
+			OnCollisionWithBrick(e);
 	}
 
 	if (e->nx == 0 && e->ny == 0 && e->obj->IsBlocking()) isInWall = true;
-
-	if (dynamic_cast<CShinyBrick*>(e->obj))
-		OnCollisionWithShinyBrick(e);
-	else if (dynamic_cast<CQuestionBrick*>(e->obj))
-		OnCollisionWithBrick(e);
 }
 
 void CParaTroopa::OnCollisionWithBrick(LPCOLLISIONEVENT e) {
 	CQuestionBrick* questionBrick = dynamic_cast<CQuestionBrick*>(e->obj);
-	if (e->nx != 0 && state == KOOPA_STATE_SHELL_MOVE || state == KOOPA_STATE_SHELL_REVERSE_MOVE)
-		questionBrick->OnCollisionWith(e);
-	else if (e->ny < 0)
+	if (e->nx != 0)
 	{
-		DebugOut(L"[INFO] Koopa hit QuestionBrick from above\n");
-		questionBrick->SetKoopa(this);
+		questionBrick->Activate();
 	}
 }
 
@@ -219,7 +216,6 @@ void CParaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
 	case PARATROOPA_STATE_SHELL_SHAKING:
 	case PARATROOPA_STATE_SHELL_REVERSE_SHAKING:
 		if (now - stateShakingStart > PARATROOPA_SHELL_SHAKING_DURATION) {
-			//DebugOut(L"[INFO] Koopa is out of shell\n");
 			vy = -0.15;
 			SetState(PARATROOPA_STATE_WALKING_LEFT);
 		}

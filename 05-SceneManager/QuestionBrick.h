@@ -62,7 +62,6 @@ public:
     void SetState(int state);
     void Activate();
     void ActivateItem();
-	void SetKoopa(LPGAMEOBJECT koopa) { Koopa = koopa; }
 
     CMario* GetPlayer(); 
 };

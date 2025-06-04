@@ -481,9 +481,9 @@ void CPlayScene::Load()
 		CGame* game = CGame::GetInstance();
 		float camX, camY;
 
-		// Set camera position
+		// Center camera on Mario 
 		camX = marioX - game->GetBackBufferWidth() / 2.0f;
-		camY = bottomBoundary - game->GetBackBufferHeight();
+		camY = marioY - game->GetBackBufferHeight() / 2.0f;
 
 		float gameWidth = game->GetBackBufferWidth();
 
@@ -514,7 +514,6 @@ void CPlayScene::Load()
 			}
 		}
 
-		//DebugOut(L"[INFO] Camera position: (%f, %f)\n", camX, camY);
 		CGame::GetInstance()->SetCamPos(camX, camY);
 	}
 	DebugOut(L"[INFO] Done loading scene  %s\n", sceneFilePath);
