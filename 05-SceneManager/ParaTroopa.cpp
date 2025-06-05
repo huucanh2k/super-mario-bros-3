@@ -69,61 +69,55 @@ void CParaTroopa::OnCollisionWith(LPCOLLISIONEVENT e) {
 	else if (dynamic_cast<CKoopa*>(e->obj))
 		OnCollisionWithKoopa(e);
 
-	if (e->ny < 0) { // Stand on platform
+	if (e->ny < 0) { // standing on platform
 		vy = 0;
+
 		if (state == PARATROOPA_STATE_SHELL_REVERSE_JUMP)
 			SetState(PARATROOPA_STATE_SHELL_REVERSE_IDLE); // Mario tail attack
+
 		if ((state == PARATROOPA_STATE_BOUNCE_LEFT || state == PARATROOPA_STATE_BOUNCE_RIGHT)
 			&& e->obj->IsBlocking()) {
 			vy = -PARATROOPA_BOUNCE_SPEED; //  bounce up 
-
-			if (e->nx != 0 && e->obj->IsBlocking()) { // reverse bounce direction when collide with wall
-				if (e->nx > 0) {
-					SetState(PARATROOPA_STATE_BOUNCE_RIGHT);
-				}
-				else {
-					SetState(PARATROOPA_STATE_BOUNCE_LEFT);
-				}
-			}
 		}
+
 		ay = PARATROOPA_GRAVITY;
 	}
 
-	if (state == PARATROOPA_STATE_WALKING_LEFT || state == PARATROOPA_STATE_WALKING_RIGHT) {
-		if (e->nx != 0 && e->obj->IsBlocking()) {
-			if (e->nx > 0) {
-				SetState(PARATROOPA_STATE_WALKING_RIGHT);
-			}
-			else {
-				SetState(PARATROOPA_STATE_WALKING_LEFT);
-			}
-		}
-	}
-
-	if (state == PARATROOPA_STATE_SHELL_MOVE || state == PARATROOPA_STATE_SHELL_REVERSE_MOVE) {
-		if (e->nx != 0 && e->obj->IsBlocking()) {
-			if (e->nx > 0) {
-				vx = PARATROOPA_SHELL_SPEED;
-			}
-			else {
-				vx = -PARATROOPA_SHELL_SPEED;
-			}
-		}
-
-		if (dynamic_cast<CShinyBrick*>(e->obj))
-			OnCollisionWithShinyBrick(e);
-		else if (dynamic_cast<CQuestionBrick*>(e->obj))
-			OnCollisionWithBrick(e);
+	if (e->nx != 0 && e->obj->IsBlocking()) {
+		if (state == PARATROOPA_STATE_WALKING_LEFT 
+			|| state == PARATROOPA_STATE_WALKING_RIGHT) 
+			SetState(e->nx > 0 
+				? PARATROOPA_STATE_WALKING_RIGHT 
+				: PARATROOPA_STATE_WALKING_LEFT);
+		else if (state == PARATROOPA_STATE_BOUNCE_LEFT 
+				|| state == PARATROOPA_STATE_BOUNCE_RIGHT)
+			SetState(e->nx > 0 
+				? PARATROOPA_STATE_BOUNCE_RIGHT 
+				: PARATROOPA_STATE_BOUNCE_LEFT);
+		else if (state == PARATROOPA_STATE_SHELL_MOVE 
+				|| state == PARATROOPA_STATE_SHELL_REVERSE_MOVE) 
+			vx = e->nx > 0 
+				? PARATROOPA_SHELL_SPEED 
+				: -PARATROOPA_SHELL_SPEED;
 	}
 
 	if (e->nx == 0 && e->ny == 0 && e->obj->IsBlocking()) isInWall = true;
+
+	if (dynamic_cast<CShinyBrick*>(e->obj))
+		OnCollisionWithShinyBrick(e);
+	else if (dynamic_cast<CQuestionBrick*>(e->obj))
+		OnCollisionWithBrick(e);
 }
 
 void CParaTroopa::OnCollisionWithBrick(LPCOLLISIONEVENT e) {
 	CQuestionBrick* questionBrick = dynamic_cast<CQuestionBrick*>(e->obj);
-	if (e->nx != 0)
+
+	if (e->nx != 0 && state == PARATROOPA_STATE_SHELL_MOVE || state == PARATROOPA_STATE_SHELL_REVERSE_MOVE)
+		questionBrick->OnCollisionWith(e);
+	else if (e->ny < 0)
 	{
-		questionBrick->Activate();
+		//DebugOut(L"[INFO] Koopa hit QuestionBrick from above\n");
+		questionBrick->SetKoopa(this);
 	}
 }
 
@@ -133,27 +127,27 @@ void CParaTroopa::OnCollisionWithKoopa(LPCOLLISIONEVENT e) {
 
 	if (koopa) {
 		if (koopa->GetIsHeld()) {
-			DebugOut(L"Koopa is collided with ParaTroopa when Mario hold\n");
+			//DebugOut(L"Koopa is collided with ParaTroopa when Mario hold\n");
 			SetState(PARATROOPA_STATE_DIE);
 			koopa->SetState(KOOPA_STATE_DIE);
 			mario->AddPoint(100, e);
 		}
 		else if (koopa->GetState() == KOOPA_STATE_SHELL_MOVE
 			|| koopa->GetState() == KOOPA_STATE_SHELL_REVERSE_MOVE) {
-			DebugOut(L"Koopa is collided with ParaTroopa when Mario kick\n");
+			//DebugOut(L"Koopa is collided with ParaTroopa when Mario kick\n");
 			SetState(PARATROOPA_STATE_DIE);
 			mario->AddPoint(100, e);
 		}
 
 		if (this->GetIsHeld()) {
-			DebugOut(L"Koopa is collided with ParaTroopa when Mario hold\n");
+			//DebugOut(L"Koopa is collided with ParaTroopa when Mario hold\n");
 			SetState(PARATROOPA_STATE_DIE);
 			koopa->SetState(KOOPA_STATE_DIE);
 			mario->AddPoint(100, e);
 		}
 		else if (this->GetState() == PARATROOPA_STATE_SHELL_MOVE
 			|| this->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE) {
-			DebugOut(L"Koopa is collided with ParaTroopa when Mario kick\n");
+			//DebugOut(L"Koopa is collided with ParaTroopa when Mario kick\n");
 			koopa->SetState(KOOPA_STATE_DIE);
 			mario->AddPoint(100, e);
 		}
@@ -167,14 +161,14 @@ void CParaTroopa::OnCollisionWithParaTroopa(LPCOLLISIONEVENT e) {
 	if (paraTroopa) {
 		// ParaTroopa collides with another ParaTroopa
 		if (paraTroopa->GetIsHeld()) {
-			DebugOut(L"[INFO] ParaTroopa is held by Mario collide with another ParaTroopa\n");
+			//DebugOut(L"[INFO] ParaTroopa is held by Mario collide with another ParaTroopa\n");
 			paraTroopa->SetState(PARATROOPA_STATE_DIE);
 			this->SetState(PARATROOPA_STATE_DIE);
 			mario->AddPoint(100);
 		}
 		else if (paraTroopa->GetState() == PARATROOPA_STATE_SHELL_MOVE
 			|| paraTroopa->GetState() == PARATROOPA_STATE_SHELL_REVERSE_MOVE) {
-			DebugOut(L"[INFO] ParaTroopa moving shell collides with another ParaTroopa\n");
+			//DebugOut(L"[INFO] ParaTroopa moving shell collides with another ParaTroopa\n");
 			this->SetState(PARATROOPA_STATE_DIE);
 			mario->AddPoint(100);
 		}
@@ -215,7 +209,6 @@ void CParaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
 	case PARATROOPA_STATE_SHELL_SHAKING:
 	case PARATROOPA_STATE_SHELL_REVERSE_SHAKING:
 		if (now - stateShakingStart > PARATROOPA_SHELL_SHAKING_DURATION) {
-			//DebugOut(L"[INFO] Koopa is out of shell\n");
 			vy = -0.15;
 			SetState(PARATROOPA_STATE_WALKING_LEFT);
 		}
@@ -234,63 +227,63 @@ void CParaTroopa::Update(DWORD dt, vector<LPGAMEOBJECT>* coObjects) {
 void CParaTroopa::SetState(int state) {
 	switch (state) {
 	case PARATROOPA_STATE_WALKING_LEFT:
-		DebugOut(L"[INFO] Paratroopa is walking left\n");
+		//DebugOut(L"[INFO] Paratroopa is walking left\n");
 		vx = -PARATROOPA_WALKING_SPEED;
 		break;
 	case PARATROOPA_STATE_WALKING_RIGHT:
-		DebugOut(L"[INFO] Paratroopa is walking right\n");
+		//DebugOut(L"[INFO] Paratroopa is walking right\n");
 		vx = PARATROOPA_WALKING_SPEED;
 		break;
 	case PARATROOPA_STATE_BOUNCE_LEFT:
-		DebugOut(L"[INFO] Paratroopa is bounce left\n");
+		//DebugOut(L"[INFO] Paratroopa is bounce left\n");
 		vx = -PARATROOPA_WALKING_SPEED;
 		vy = -PARATROOPA_BOUNCE_SPEED;
 		ay = PARATROOPA_GRAVITY; 
 		break;
 	case PARATROOPA_STATE_BOUNCE_RIGHT:
-		DebugOut(L"[INFO] Paratroopa is bounce right\n");
+		//DebugOut(L"[INFO] Paratroopa is bounce right\n");
 		vx = PARATROOPA_WALKING_SPEED;
 		vy = -PARATROOPA_BOUNCE_SPEED;
 		ay = PARATROOPA_GRAVITY; 
 		break;
 	case PARATROOPA_STATE_SHELL_IDLE:
-		DebugOut(L"[INFO] Paratroopa is shell idle\n");
+		//DebugOut(L"[INFO] Paratroopa is shell idle\n");
 		stateShellStart = GetTickCount64();
 		vx = 0;
 		break;
 	case PARATROOPA_STATE_SHELL_MOVE:
-		DebugOut(L"[INFO] Paratroopa is in shell move\n");
+		//DebugOut(L"[INFO] Paratroopa is in shell move\n");
 		ay = PARATROOPA_GRAVITY;				
 		vx = 0;							
 		break;
 	case PARATROOPA_STATE_SHELL_SHAKING:
-		DebugOut(L"[INFO] Paratroopa is shell shaking\n");
+		//DebugOut(L"[INFO] Paratroopa is shell shaking\n");
 		stateShakingStart = GetTickCount64();
 		vx = 0;
 		break;
 	case PARATROOPA_STATE_SHELL_REVERSE_IDLE:
-		DebugOut(L"[INFO] Paratroopa is shell reverse idle\n");
+		//DebugOut(L"[INFO] Paratroopa is shell reverse idle\n");
 		stateShellStart = GetTickCount64();
 		vx = 0;
 		break;
 	case PARATROOPA_STATE_SHELL_REVERSE_MOVE:
-		DebugOut(L"[INFO] Paratroopa is shell reverse move\n");
+		//DebugOut(L"[INFO] Paratroopa is shell reverse move\n");
 		ay = KOOPA_GRAVITY;				
 		vx = 0;							
 		break;
 	case PARATROOPA_STATE_SHELL_REVERSE_SHAKING:
-		DebugOut(L"[INFO] Paratroopa is shell reverse shaking\n");
+		//DebugOut(L"[INFO] Paratroopa is shell reverse shaking\n");
 		stateShakingStart = GetTickCount64();
 		vx = 0;
 		break;
 	case PARATROOPA_STATE_SHELL_REVERSE_JUMP:
-		DebugOut(L"[INFO] Paratroopa is shell reverse jump\n");
+		//DebugOut(L"[INFO] Paratroopa is shell reverse jump\n");
 		vy = -PARATROOPA_DEFLECT_SPEED;      
 		ay = PARATROOPA_GRAVITY;             
 		vx = -vx;                       
 		break;
 	case PARATROOPA_STATE_DIE:
-		DebugOut(L"[INFO] Paratroopa is dead\n");
+		//DebugOut(L"[INFO] Paratroopa is dead\n");
 		die_start = GetTickCount64();
 		ay = PARATROOPA_GRAVITY;
 		vx = -0.1f;
@@ -306,11 +299,13 @@ void CParaTroopa::Reload() {
 	this->ax = 0;
 	this->ay = PARATROOPA_GRAVITY;
 
-	if (x0 == ORIGINAL_X_PARATROOPA_WALKING
-		&& y0 == ORIGINAL_Y_PARATROOPA_WALKING)
-		SetState(PARATROOPA_STATE_WALKING_LEFT);
-	else
-		SetState(PARATROOPA_STATE_BOUNCE_LEFT);
+	CMario* mario = GetPlayer();
+	float mX, mY;
+	mario->GetPosition(mX, mY);
+
+	SetState((x0 == ORIGINAL_X_PARATROOPA_WALKING && y0 == ORIGINAL_Y_PARATROOPA_WALKING)
+		? (x < mX ? PARATROOPA_STATE_WALKING_RIGHT : PARATROOPA_STATE_WALKING_LEFT)
+		: (x < mX ? PARATROOPA_STATE_BOUNCE_RIGHT : PARATROOPA_STATE_BOUNCE_LEFT));
 
 	stateShellStart = -1;
 	stateShakingStart = -1;
